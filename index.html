@@ -227,6 +227,37 @@ input:focus{border-color:var(--accent)!important;outline:none;box-shadow:0 0 0 3
 .reco-foot .muted{color:#C9D8FF}
 .reco-foot b .muted{color:#C9D8FF!important}
 @media(max-width:560px){.reco{padding:18px}.reco-main{grid-template-columns:auto minmax(0,1fr)}.reco-days{grid-column:1/-1;text-align:left;display:flex;gap:8px;align-items:baseline}}
+select{font:inherit;color:inherit;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--surface);width:100%}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:500;background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+.check input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent)}
+.reco-btn{justify-self:start;background:#fff!important;color:var(--accent)!important;border-color:#fff!important}
+.reco-btn:hover{background:#EEF3FF!important}
+.need{display:grid;gap:14px}
+.need-month{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:18px 20px;display:grid;gap:12px}
+.need-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.need-head b{font-size:17px}
+.need-head span{font-size:20px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.need-q{display:grid;gap:2px;border-top:1px solid var(--line);padding-top:10px}
+.need-qhead{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);font-weight:600;padding-bottom:4px}
+.need-qhead b{color:var(--ink);font-variant-numeric:tabular-nums}
+.need-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:7px 0}
+.need-row b{display:block;font-size:14.5px}
+.need-row span.muted{font-size:12.5px}
+.need-amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.need-empty{margin:2px 0 4px;font-size:13px}
+.need-alert{background:var(--bad-soft);color:var(--bad);border-radius:12px;padding:12px 14px;font-size:14px;font-weight:500}
+.movs{border-top:1px solid var(--line);padding-top:10px;font-size:13.5px}
+.movs summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.mov{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.mov:last-of-type{border-bottom:0}
+.mov-d{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12.5px;min-width:5ch}
+.mov-n{overflow-wrap:anywhere}
+.mov-m{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mov-m.pos{color:var(--ok)}
+.mov-x{border:0;background:transparent;color:var(--muted);font-size:16px;min-width:28px;height:28px;border-radius:6px}
+.mov-x:hover{background:var(--bad-soft);color:var(--bad)}
+.mov-x.on{background:var(--bad-soft);color:var(--bad);font-size:12px;font-weight:600}
+@media(max-width:560px){.top .toolbar{grid-template-columns:1fr 1fr}.top .toolbar #movBtn{grid-column:1/-1;order:-2}.need-month{padding:16px}.need-head span{font-size:18px}}
 </style>
 
 </head>
@@ -241,7 +272,8 @@ input:focus{border-color:var(--accent)!important;outline:none;box-shadow:0 0 0 3
     <div style="display:grid;gap:6px;justify-items:end">
       <div class="toolbar">
         <button class="btn" id="icsBtn" type="button">Agregar pagos a mi calendario</button>
-        <button class="btn primary" id="addBtn" type="button">+ Agregar tarjeta</button>
+        <button class="btn" id="addBtn" type="button">+ Agregar tarjeta</button>
+        <button class="btn primary" id="movBtn" type="button">Registrar compra o pago</button>
       </div>
       <span class="store-note">Tus datos se guardan solo en este dispositivo</span>
     </div>
@@ -264,6 +296,11 @@ input:focus{border-color:var(--accent)!important;outline:none;box-shadow:0 0 0 3
   </section>
 
   <section class="reco" id="reco" aria-labelledby="recoTitle" aria-live="polite"></section>
+
+  <section class="section" aria-labelledby="needTitle">
+    <div class="section-head"><h2 id="needTitle">Lo que necesitas para pagar</h2><span class="muted" style="font-size:13px">Por quincena, según tus fechas límite</span></div>
+    <div class="need" id="need"></div>
+  </section>
 
   <section class="section" aria-labelledby="payTitle">
     <div class="section-head"><h2 id="payTitle">Próximos pagos</h2><span class="muted" style="font-size:13px">Registra los pagos de cada periodo</span></div>
@@ -340,6 +377,32 @@ input:focus{border-color:var(--accent)!important;outline:none;box-shadow:0 0 0 3
   </form>
 </div>
 
+<div class="modal" id="mModal" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+  <form class="sheet" id="mForm" novalidate>
+    <h2 id="mTitle">Registrar movimiento</h2>
+    <fieldset class="field">
+      <legend>¿Qué quieres registrar?</legend>
+      <div class="seg">
+        <label><input type="radio" name="mtipo" value="c" id="m-tipo-c" checked><span>Compra</span></label>
+        <label><input type="radio" name="mtipo" value="p" id="m-tipo-p"><span>Pago a la tarjeta</span></label>
+      </div>
+    </fieldset>
+    <div class="field"><label for="m-card">Tarjeta</label><select id="m-card"></select><span class="hint" id="m-cardHint"></span></div>
+    <div class="grid2">
+      <div class="field"><label for="m-monto">Monto</label><input type="number" id="m-monto" min="0" step="0.01" inputmode="decimal" placeholder="$0.00"></div>
+      <div class="field"><label for="m-fecha">Fecha</label><input type="date" id="m-fecha"></div>
+    </div>
+    <div class="field"><label for="m-nota">Nota <span class="muted">(opcional)</span></label><input type="text" id="m-nota" maxlength="60" placeholder="Ej. Súper, gasolina, pago quincena"></div>
+    <label class="check" id="m-cubreWrap" hidden><input type="checkbox" id="m-cubre"> <span id="m-cubreTxt">Con este pago cubrí el periodo</span></label>
+    <div class="err" id="mErr" hidden></div>
+    <div class="sheet-foot">
+      <span style="flex:1"></span>
+      <button type="button" class="btn" id="mCancel">Cancelar</button>
+      <button type="submit" class="btn primary" id="mSave">Guardar</button>
+    </div>
+  </form>
+</div>
+
 <script>
 const COLORS=["#0B3D91","#1A73C9","#6A2C91","#B3123A","#D9681A","#C9A227","#1F7A4D","#2B2B2B","#8A8F98"];
 const EXAMPLES=[
@@ -395,7 +458,50 @@ function recoHtml(L,t){
     <div class="reco-days"><b>${best.days}</b><span>días para pagar</span></div>
   </div>
   <p class="reco-why">Si compras hoy, el cargo entra al corte del <b>${larga(best.cut)}</b> y lo pagas hasta el <b>${larga(best.due)}</b>.</p>
-  <div class="reco-foot">${second?`<span>Segunda opción: <b>${title(second.c)}</b> · ${second.days} días</span>`:""}${cambia?`<span>A partir del <b>${larga(cambia.d)}</b> conviene <b>${title(cambia.c)}</b></span>`:""}${excluded?`<span class="muted">No consideré ${excluded} tarjeta${excluded>1?"s":""} con poco crédito disponible.</span>`:""}</div>`;
+  <div class="reco-foot">${second?`<span>Segunda opción: <b>${title(second.c)}</b> · ${second.days} días</span>`:""}${cambia?`<span>A partir del <b>${larga(cambia.d)}</b> conviene <b>${title(cambia.c)}</b></span>`:""}${excluded?`<span class="muted">No consideré ${excluded} tarjeta${excluded>1?"s":""} con poco crédito disponible.</span>`:""}</div>
+  ${isExample()?"":`<button class="btn reco-btn" type="button" data-buy="${esc(best.c.id)}">Registrar compra con esta tarjeta</button>`}`;
+}
+const r2=n=>Math.round(n*100)/100;
+function movsIn(c,tipo,desde,hasta){ // (desde, hasta] como ISO
+  return r2((c.movs||[]).filter(m=>m.t===tipo&&m.f>desde&&m.f<=hasta).reduce((a,m)=>a+m.m,0));
+}
+function needItems(c,t){
+  const out=[],pi=payInfo(c,t),hoy=iso(t);
+  if(!pi.paid){
+    const prevCut=iso(cutBefore(c,pi.cut));
+    let monto=Number(c.pni)||0,fuente="estado";
+    if(!monto){monto=movsIn(c,"c",prevCut,iso(pi.cut));fuente="compras";
+      if(!monto&&!(c.movs||[]).length&&Number(c.saldo)>0){monto=Number(c.saldo);fuente="saldo"}}
+    out.push({c,due:pi.due,monto,fuente});
+  }
+  const open=cutOnOrAfter(c,t),openDue=dueFor(c,open);
+  if(!out.length||iso(openDue)!==iso(out[0].due)){
+    const ac=movsIn(c,"c",iso(cutBefore(c,open)),hoy);
+    if(ac>0)out.push({c,due:openDue,monto:ac,fuente:"abierto"});
+  }
+  return out;
+}
+function movList(c){
+  const ms=(c.movs||[]).slice().sort((a,b)=>b.f.localeCompare(a.f)||b.id.localeCompare(a.id));
+  if(!ms.length)return isExample()?"":`<p class="muted" style="margin:0;font-size:13px">Sin movimientos registrados. Usa "Registrar" cuando compres o pagues.</p>`;
+  return `<details class="movs"><summary>Movimientos <span class="muted">(${ms.length})</span></summary>${ms.slice(0,15).map(m=>`<div class="mov"><span class="mov-d">${corta(parseIso(m.f))}</span><span class="mov-n">${m.t==="c"?"Compra":"Pago"}${m.n?` · ${esc(m.n)}`:""}</span><span class="mov-m ${m.t==="p"?"pos":""}">${m.t==="p"?"−":"+"}${money.format(m.m)}</span><button type="button" class="mov-x" aria-label="Borrar movimiento" data-delmov="${esc(c.id)}" data-mid="${esc(m.id)}">×</button></div>`).join("")}${ms.length>15?`<p class="muted" style="font-size:12.5px;margin:6px 0 0">Se muestran los 15 más recientes.</p>`:""}</details>`;
+}
+function needHtml(L,t){
+  const items=L.flatMap(c=>needItems(c,t)).filter(i=>i.monto>0);
+  const meses=[0,1,2].map(k=>{const y=t.getFullYear(),m=t.getMonth()+k;const a=new Date(y,m,1,12),b=new Date(y,m+1,0,12),mid=new Date(y,m,15,12);
+    const q=[[a,mid],[addDays(mid,1),b]].map(([x,z])=>{const its=items.filter(i=>i.due>=x&&i.due<=z).sort((p,q)=>p.due-q.due);return{x,z,its,tot:r2(its.reduce((s,i)=>s+i.monto,0))}});
+    return{a,q,tot:r2(q[0].tot+q[1].tot),k}}).filter(M=>M.k===0||M.tot>0);
+  const fuenteTxt={estado:"del estado de cuenta",compras:"estimado con tus compras",saldo:"estimado con el saldo",abierto:"acumulado hasta hoy"};
+  const row=i=>`<div class="need-row">${sw(i.c)}<div style="min-width:0"><b>${title(i.c)}</b><span class="muted">Vence ${larga(i.due)} · ${fuenteTxt[i.fuente]}</span></div><span class="need-amt">${i.monto?money.format(i.monto):"—"}</span></div>`;
+  const venc=items.filter(i=>i.due<t);
+  if(!items.length)return `<div class="need-month"><p class="muted" style="margin:0">No tienes pagos pendientes con monto. Registra tus compras o captura el pago para no generar intereses de cada tarjeta para ver aquí cuánto necesitas.</p></div>`;
+  return (venc.length?`<div class="need-alert">Tienes ${venc.length} pago${venc.length>1?"s":""} vencido${venc.length>1?"s":""} sin confirmar: ${venc.map(i=>title(i.c)).join(", ")}. Si ya pagaste, regístralo.</div>`:"")+
+  meses.map(M=>{const mes=fMes.format(M.a);return `<div class="need-month">
+    <div class="need-head"><b>${mes[0].toUpperCase()+mes.slice(1)}</b><span>${money.format(M.tot)}</span></div>
+    ${M.q.map((Q,ix)=>`<div class="need-q"><div class="need-qhead"><span>${ix?"Segunda":"Primera"} quincena · ${Q.x.getDate()} al ${Q.z.getDate()}</span><b>${money.format(Q.tot)}</b></div>
+      ${Q.its.length?Q.its.map(row).join(""):`<p class="muted need-empty">Sin pagos en esta quincena.</p>`}</div>`).join("")}
+  </div>`}).join("")+
+  `<p class="comparison-note">Los montos "estimados" se calculan con las compras que registras. Cuando llegue tu estado de cuenta, captura el pago para no generar intereses en la tarjeta para tener el monto exacto.</p>`;
 }
 function buyInfo(c,d){const cut=cutOnOrAfter(c,d),due=dueFor(c,cut);return{cut,due,days:diff(d,due)}}
 function payInfo(c,t){
@@ -437,6 +543,7 @@ function render(){
 
   // Te recomiendo pagar con (hoy)
   $("reco").innerHTML=recoHtml(L,t);
+  $("need").innerHTML=needHtml(L,t);
 
   // Hero
   const bd=$("buyDate").value?parseIso($("buyDate").value):t;
@@ -506,8 +613,9 @@ function render(){
         <div class="row"><span class="dot a"></span><span>Desde el <b>${larga(after)}</b> → pagas hasta el <b>${larga(nxDue)}</b> <span class="muted">(${diff(after,nxDue)} días, el mejor día)</span></span></div>
       </div>
       ${usage}
+      ${movList(c)}
       <div class="card-foot"><span class="muted" style="font-size:13px">Próximo mejor día: <b style="color:var(--ink)">${larga(after)}</b></span>
-      ${isExample()?"":`<button class="btn" type="button" data-edit="${esc(c.id)}">Editar</button>`}</div>
+      ${isExample()?"":`<span class="toolbar"><button class="btn" type="button" data-mov="${esc(c.id)}">Registrar</button><button class="btn" type="button" data-edit="${esc(c.id)}">Editar</button></span>`}</div>
     </article>`}).join("");
 
   // Calendario
@@ -565,7 +673,7 @@ $("form").addEventListener("submit",async e=>{
   if(modo==="dias"&&!(Number.isInteger(dias)&&dias>=1&&dias<=60))return err("Los días después del corte deben estar entre 1 y 60.");
   if(![num("f-linea"),num("f-saldo"),num("f-pni")].every(n=>Number.isFinite(n)&&n>=0&&n<=1e12))return err("Los montos deben ser números válidos entre 0 y un billón.");
   const data={nombre,banco:$("f-banco").value.trim(),ult,corte,modo,limite:modo==="dia"?limite:0,dias:modo==="dias"?dias:20,
-    linea:num("f-linea"),saldo:num("f-saldo"),pni:num("f-pni"),color:pickedColor,pagado:editing?.pagado||"",pagos:editing?.pagos||[],seguimiento:editing?.seguimiento||iso(cutBefore({corte},today()))};
+    linea:num("f-linea"),saldo:num("f-saldo"),pni:num("f-pni"),color:pickedColor,pagado:editing?.pagado||"",pagos:editing?.pagos||[],movs:editing?.movs||[],seguimiento:editing?.seguimiento||iso(cutBefore({corte},today()))};
   const id=editing?.id||("t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
   $("saveBtn").disabled=true;
   try{await store.save(id,data);closeForm()}catch(x){err("No se pudo guardar. Revisa el espacio y los permisos de almacenamiento del navegador.")}
@@ -586,6 +694,79 @@ document.addEventListener("click",async e=>{
     const done=new Set([...(c.pagos||[]),c.pagado].filter(Boolean));if(done.has(pb.dataset.due))done.delete(pb.dataset.due);else done.add(pb.dataset.due);pb.disabled=true;
     try{await store.save(c.id,{...c,pagado:"",pagos:[...done]})}catch(x){pb.disabled=false;toast("No se pudo guardar el pago. Revisa el almacenamiento del navegador.")}}
 });
+/* ---------- Movimientos ---------- */
+let mReturn=null;
+function cardOpts(sel){$("m-card").innerHTML=cards.map(c=>`<option value="${esc(c.id)}"${c.id===sel?" selected":""}>${esc(c.nombre)}${c.ult?" ··"+esc(c.ult):""}${c.banco?" · "+esc(c.banco):""}</option>`).join("")}
+function mSync(){
+  const pago=$("m-tipo-p").checked,c=cards.find(x=>x.id===$("m-card").value);if(!c)return;
+  const t=today(),pi=payInfo(c,t);
+  if(pago){
+    $("m-cubreWrap").hidden=pi.paid;
+    $("m-cubreTxt").textContent=`Con este pago cubrí el periodo que vence el ${larga(pi.due)}`;
+    $("m-cardHint").textContent=Number(c.pni)>0?`Pago para no generar intereses: ${money.format(c.pni)}`:`Saldo actual: ${money.format(Number(c.saldo)||0)}`;
+    const v=Number($("m-monto").value);if(Number(c.pni)>0&&v>0&&!$("m-cubre").dataset.touched)$("m-cubre").checked=v>=Number(c.pni);
+  }else{
+    $("m-cubreWrap").hidden=true;
+    const d=disponible(c),bi=buyInfo(c,$("m-fecha").value?parseIso($("m-fecha").value):t);
+    $("m-cardHint").textContent=(d!=null?`Disponible ${money.format(d)} · `:"")+`Esta compra se paga el ${larga(bi.due)}`;
+  }
+}
+function openMov(cardId,tipo){
+  if(!cards.length){toast("Primero agrega una tarjeta.");return}
+  mReturn=document.activeElement;document.querySelector(".wrap").inert=true;document.body.style.overflow="hidden";
+  const t=today();
+  let sel=cardId;
+  if(!sel){const b=bestFor(cards,t).list[0];sel=b?b.c.id:cards[0].id}
+  cardOpts(sel);
+  (tipo==="p"?$("m-tipo-p"):$("m-tipo-c")).checked=true;
+  $("m-monto").value="";$("m-nota").value="";$("m-fecha").value=iso(t);$("m-fecha").max=iso(t);
+  $("m-cubre").checked=false;delete $("m-cubre").dataset.touched;$("mErr").hidden=true;
+  mSync();$("mModal").hidden=false;setTimeout(()=>$("m-monto").focus(),30);
+}
+function closeMov(){$("mModal").hidden=true;document.querySelector(".wrap").inert=false;document.body.style.overflow="";if(mReturn?.isConnected)mReturn.focus()}
+["m-tipo-c","m-tipo-p","m-card","m-fecha"].forEach(id=>$(id).addEventListener("change",mSync));
+$("m-monto").addEventListener("input",mSync);
+$("m-cubre").addEventListener("change",()=>{$("m-cubre").dataset.touched="1"});
+$("mCancel").onclick=closeMov;
+$("mModal").addEventListener("click",e=>{if(e.target===$("mModal"))closeMov()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("mModal").hidden)closeMov()});
+$("movBtn").onclick=()=>openMov();
+$("mForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const err=m=>{$("mErr").textContent=m;$("mErr").hidden=false};
+  const c=cards.find(x=>x.id===$("m-card").value);if(!c)return err("Elige una tarjeta.");
+  const monto=r2(Number($("m-monto").value)),f=$("m-fecha").value,tipo=$("m-tipo-p").checked?"p":"c";
+  if(!(monto>0&&monto<=1e12))return err("Escribe un monto mayor a cero.");
+  if(!validDate(f)||f>iso(today()))return err("Elige una fecha válida, que no sea futura.");
+  const mov={id:"m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:tipo,m:monto,f};
+  const nota=$("m-nota").value.trim().slice(0,60);if(nota)mov.n=nota;
+  let saldo=Number(c.saldo)||0,pagos=[...new Set([...(c.pagos||[]),c.pagado].filter(Boolean))],pni=Number(c.pni)||0;
+  if(tipo==="c")saldo=r2(saldo+monto);
+  else{
+    saldo=r2(Math.max(0,saldo-monto));
+    const pi=payInfo(c,today());
+    if(!pi.paid&&$("m-cubre").checked){const d=iso(pi.due);if(!pagos.includes(d))pagos.push(d);mov.per=d;mov.pniPrev=pni;pni=0}
+  }
+  $("mSave").disabled=true;
+  try{
+    await store.save(c.id,{...c,saldo,pni,pagado:"",pagos,movs:[...(c.movs||[]),mov]});
+    closeMov();
+    const linea=Number(c.linea)||0;
+    toast(tipo==="c"?(linea&&saldo>linea?"Compra registrada. Rebasaste el monto autorizado de esta tarjeta.":`Compra registrada. Disponible: ${money.format(Math.max(0,linea-saldo))}`):`Pago registrado. Saldo: ${money.format(saldo)}`);
+  }catch(x){err("No se pudo guardar. Revisa el almacenamiento del navegador.")}
+  finally{$("mSave").disabled=false}
+});
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-buy]");if(b){openMov(b.dataset.buy,"c");return}
+  const mv=e.target.closest("[data-mov]");if(mv){openMov(mv.dataset.mov);return}
+  const dm=e.target.closest("[data-delmov]");if(!dm)return;
+  const c=cards.find(x=>x.id===dm.dataset.delmov);if(!c)return;
+  const m=(c.movs||[]).find(x=>x.id===dm.dataset.mid);if(!m)return;
+  if(dm.dataset.confirm!=="1"){dm.dataset.confirm="1";dm.textContent="¿Borrar?";dm.classList.add("on");setTimeout(()=>{if(dm.isConnected){dm.dataset.confirm="";dm.textContent="×";dm.classList.remove("on")}},3000);return}
+  let saldo=Number(c.saldo)||0,pagos=[...(c.pagos||[])],pni=Number(c.pni)||0;
+  if(m.t==="c")saldo=r2(Math.max(0,saldo-m.m));else{saldo=r2(saldo+m.m);if(m.per){pagos=pagos.filter(d=>d!==m.per);if(m.pniPrev!=null)pni=m.pniPrev}}
+  try{await store.save(c.id,{...c,saldo,pni,pagos,movs:c.movs.filter(x=>x.id!==m.id)});toast("Movimiento borrado.")}catch(x){toast("No se pudo borrar.")}
+});
 $("buyDate").addEventListener("change",render);
 $("buyDate").value=iso(today());
 
@@ -605,9 +786,16 @@ function normalizeCards(arr){
     if(c.color&&!/^#[0-9a-f]{6}$/i.test(c.color))throw Error("Color no válido");
     const pagos=c.pagos||[];
     if(!Array.isArray(pagos)||pagos.length>1200||!pagos.every(validDate)||(c.pagado&&!validDate(c.pagado)))throw Error("Pagos no válidos");
+    const movs=c.movs||[];
+    if(!Array.isArray(movs)||movs.length>5000)throw Error("Movimientos no válidos");
+    const mids=new Set();
+    const movsOk=movs.map(m=>{
+      if(!m||typeof m!=="object"||typeof m.id!=="string"||!/^[-a-zA-Z0-9_]{1,40}$/.test(m.id)||mids.has(m.id)||!["c","p"].includes(m.t)||typeof m.m!=="number"||!Number.isFinite(m.m)||m.m<=0||m.m>1e12||!validDate(m.f)||(m.n!=null&&(typeof m.n!=="string"||m.n.length>60))||(m.per&&!validDate(m.per))||(m.pniPrev!=null&&(typeof m.pniPrev!=="number"||!Number.isFinite(m.pniPrev)||m.pniPrev<0)))throw Error("Movimiento no válido");
+      mids.add(m.id);const o={id:m.id,t:m.t,m:r2(m.m),f:m.f};if(m.n)o.n=m.n;if(m.per)o.per=m.per;if(m.pniPrev!=null)o.pniPrev=m.pniPrev;return o;
+    });
     const seguimiento=c.seguimiento||iso(cutBefore(c,today()));
     if(!validDate(seguimiento)||parseIso(seguimiento).getFullYear()<2000||parseIso(seguimiento).getFullYear()>2100)throw Error("Periodo no válido");
-    return {id:c.id,nombre:c.nombre.trim(),banco:c.banco,ult:String(c.ult||"").replace(/\D/g,"").slice(0,4),corte:c.corte,modo:c.modo,limite:c.modo==="dia"?c.limite:0,dias:c.modo==="dias"?c.dias:20,linea:c.linea,saldo:c.saldo,pni:c.pni,color:c.color||COLORS[0],pagado:c.pagado||"",pagos:[...new Set(pagos)],seguimiento};
+    return {id:c.id,nombre:c.nombre.trim(),banco:c.banco,ult:String(c.ult||"").replace(/\D/g,"").slice(0,4),corte:c.corte,modo:c.modo,limite:c.modo==="dia"?c.limite:0,dias:c.modo==="dias"?c.dias:20,linea:c.linea,saldo:c.saldo,pni:c.pni,color:c.color||COLORS[0],pagado:c.pagado||"",pagos:[...new Set(pagos)],seguimiento,movs:movsOk};
   });
 }
 let storageFault=false;

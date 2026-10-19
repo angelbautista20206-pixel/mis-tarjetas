@@ -1,6 +1,6 @@
 // Caché aislada por aplicación y ruta; no elimina cachés de otras aplicaciones.
 const PREFIX = 'lba-mis-tarjetas-' + new URL(self.registration.scope).pathname;
-const VERSION = PREFIX + '-v5';
+const VERSION = PREFIX + '-v6';
 const SHELL = ['./', 'index.html', 'privacidad.html', 'manifest.webmanifest', 'assets/lba-logo.png'];
 const localURL = path => new URL(path, self.registration.scope).href;
 self.addEventListener('install', event => {
