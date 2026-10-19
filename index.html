@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2563EB">
+<meta name="theme-color" content="#FFFFFF">
 <meta name="description" content="Controla tus tarjetas de crédito, fechas de corte y límites de pago.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/lba-logo.png" type="image/png">
@@ -13,26 +13,22 @@
 <meta name="apple-mobile-web-app-title" content="Mis Tarjetas">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Mis Tarjetas · LBA Automate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 
 
 <style>
 /* Layout: una columna de trabajo — "qué tarjeta usar" arriba, pagos próximos, tarjetas, calendario 60 días */
 :root{
-  --bg:#F5F8FC; --surface:#FFFFFF; --sunk:#F3F6FB; --ink:#0B1F3A; --muted:#526278; --line:#DDE5EF;
-  --accent:#2563EB; --accent-ink:#FFFFFF; --accent-soft:#EBF2FF;
-  --ok:#1D7A49; --ok-soft:#DDF2E4; --warn:#9A6212; --warn-soft:#FBEBD0; --bad:#B42318; --bad-soft:#FBE1DE;
+  --bg:#FFFFFF; --surface:#FFFFFF; --sunk:#F6F8FC; --ink:#0B1530; --muted:#4A5568; --line:#E3E8F0;
+  --accent:#2563EB; --accent-hover:#1D4ED8; --accent-ink:#FFFFFF; --accent-soft:#EEF3FF; --accent-line:#D6E2FF;
+  --ok:#15803D; --ok-soft:#E6F6EC; --warn:#A16207; --warn-soft:#FEF4DC; --bad:#C2261B; --bad-soft:#FDECEA;
+  --shadow:0 1px 2px rgba(16,24,40,.04),0 10px 28px rgba(37,99,235,.07);
   --f-display:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#081527; --surface:#10233B; --sunk:#0C1B30; --ink:#E4ECEA; --muted:#93A39F; --line:#2A3F59;
-  --accent:#82B0FF; --accent-ink:#081527; --accent-soft:#193455;
-  --ok:#5BD08E; --ok-soft:#163626; --warn:#E9B05A; --warn-soft:#3A2B13; --bad:#F2877C; --bad-soft:#3E1C19; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#081527; --surface:#10233B; --sunk:#0C1B30; --ink:#E4ECEA; --muted:#93A39F; --line:#2A3F59;
-  --accent:#82B0FF; --accent-ink:#081527; --accent-soft:#193455;
-  --ok:#5BD08E; --ok-soft:#163626; --warn:#E9B05A; --warn-soft:#3A2B13; --bad:#F2877C; --bad-soft:#3E1C19; color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -190,6 +186,29 @@ fieldset{border:0;padding:0;margin:0}
 .brand{display:flex;gap:10px;align-items:center;text-decoration:none;color:var(--ink)}.brand img{border-radius:10px;object-fit:contain;background:white}.brand strong{display:block;font-size:16px;letter-spacing:.06em}.brand small{display:block;font-size:9px;letter-spacing:.12em;color:var(--muted)}.brandtag{font-size:12px;color:var(--muted)}
 .intro{margin:7px 0 0;color:var(--muted);font-size:15px}.today{font-size:12px;margin-bottom:6px}.comparison-note{font-size:12px;color:var(--muted);margin:0}.hero,.sum,.card,.pay-list,.cal{border-radius:20px;box-shadow:0 4px 16px #0b1f3a04}.sum{border-top:3px solid var(--accent);padding:24px}.kpi{padding:8px 0}.kpi b{font-weight:650;letter-spacing:-.035em}.btn{min-height:44px;border-radius:10px}.hero{background:var(--accent-soft)}.rank-row{padding:13px 0}.sheet{border-radius:20px}.pay .name{overflow-wrap:anywhere}.seg label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:560px){body{padding-block:16px 32px}.wrap{gap:22px}.brandtag{display:none}.top>div{width:100%}.top .toolbar{display:grid;grid-template-columns:1fr 1fr;width:100%}.top .toolbar .primary{order:-1}.top .toolbar .btn{font-size:13px;padding:9px}.hero,.sum,.card{padding:16px}.kpi b{font-size:19px}.cal{padding:6px 12px}.cal-row{grid-template-columns:8ch auto minmax(0,1fr);gap:8px}.cal-row>span:last-child{grid-column:3}.cal-row .dt{font-size:12px}.brand strong{font-size:14px}.pay{padding:12px;gap:10px}.sheet{padding:18px}.card .usage>div{gap:10px;flex-wrap:wrap}}
+/* Estilo LBA: fondo blanco, azul de marca, tarjetas con sombra suave */
+h1{font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+h2{font-weight:700;letter-spacing:-.02em}
+.brandbar{padding-bottom:16px}
+.hero,.sum,.card,.pay-list,.cal{border:1px solid var(--line);box-shadow:var(--shadow);background:var(--surface)}
+.hero{background:linear-gradient(180deg,var(--accent-soft) 0%,var(--surface) 70%);border-color:var(--accent-line)}
+.sum{border-top:1px solid var(--line)}
+.btn{border-radius:10px;font-weight:600;border-color:var(--line);background:var(--surface);color:var(--ink)}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:var(--accent-ink)}
+.btn.ghost{color:var(--accent);border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--accent-soft);color:var(--accent)}
+.label{color:var(--accent);letter-spacing:.07em}
+.empty-banner{background:var(--accent-soft);border:1px solid var(--accent-line)}
+.pick .days b,.kpi.main b{color:var(--accent)}
+.dates div{background:var(--sunk);border:1px solid var(--line)}
+.chip.neutral{background:var(--accent-soft);color:var(--accent)}
+.today{color:var(--accent);font-weight:600}
+.modal{background:rgba(11,21,48,.35)}
+.sheet{box-shadow:0 20px 50px rgba(11,21,48,.18)}
+input[type=text],input[type=number],input[type=date],.field input{background:var(--surface)!important;border-color:var(--line)!important}
+input:focus{border-color:var(--accent)!important;outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
 </style>
 
 </head>
