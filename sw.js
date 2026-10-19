@@ -1,30 +1,39 @@
-// Mis Tarjetas: funciona sin conexión. Sube VERSION cada vez que publiques cambios.
-const VERSION = "mis-tarjetas-v1";
-const SHELL = ["./", "index.html", "privacidad.html", "manifest.webmanifest",
-  "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
-
-self.addEventListener("install", e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+// Caché aislada por aplicación y ruta; no elimina cachés de otras aplicaciones.
+const PREFIX = 'lba-mis-tarjetas-' + new URL(self.registration.scope).pathname;
+const VERSION = PREFIX + '-v2';
+const SHELL = ['./', 'index.html', 'privacidad.html', 'manifest.webmanifest', 'assets/lba-logo.png'];
+const localURL = path => new URL(path, self.registration.scope).href;
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(VERSION).then(cache => cache.addAll(SHELL.map(localURL))));
 });
-self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith(PREFIX) && key !== VERSION).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
-self.addEventListener("fetch", e => {
-  const req = e.request;
-  if (req.method !== "GET") return;
-  const url = new URL(req.url);
-  // Página: red primero (para recibir actualizaciones), caché si no hay conexión
-  if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(r => { const c = r.clone(); caches.open(VERSION).then(x => x.put("index.html", c)); return r; })
-      .catch(() => caches.match("index.html")));
+self.addEventListener('fetch', event => {
+  const request = event.request, url = new URL(request.url);
+  if(request.method !== 'GET' || url.origin !== self.location.origin || !url.href.startsWith(self.registration.scope)) return;
+  if(request.mode === 'navigate') {
+    event.respondWith((async () => {
+      const cache = await caches.open(VERSION);
+      try {
+        const response = await fetch(request);
+        if(response.ok) await cache.put(request, response.clone());
+        return response;
+      } catch(error) {
+        const exact = await cache.match(request, {ignoreSearch:true});
+        if(exact) return exact;
+        if(url.pathname === new URL(self.registration.scope).pathname || url.pathname.endsWith('/index.html')) return await cache.match(localURL('index.html'));
+        return new Response('Esta página no está disponible sin conexión.', {status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}});
+      }
+    })());
     return;
   }
-  // Archivos propios y fuentes: caché primero
-  if (url.origin === location.origin || url.hostname.endsWith("fonts.googleapis.com") || url.hostname.endsWith("fonts.gstatic.com")) {
-    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => {
-      if (r.ok || r.type === "opaque") { const c = r.clone(); caches.open(VERSION).then(x => x.put(req, c)); }
-      return r;
-    })));
-  }
+  if(!SHELL.map(localURL).includes(url.href)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(VERSION), hit = await cache.match(request);
+    if(hit) return hit;
+    const response = await fetch(request);
+    if(response.ok) await cache.put(request, response.clone());
+    return response;
+  })());
 });

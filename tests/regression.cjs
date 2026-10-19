@@ -1,0 +1,34 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync(new URL('../index.html','file://'+__filename),'utf8');
+const source=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const elements=new Map(), data=new Map();
+const el=id=>{if(!elements.has(id))elements.set(id,{value:'',textContent:'',innerHTML:'',hidden:false,disabled:false,style:{},addEventListener(){},setAttribute(){},focus(){},getClientRects(){return[{}]}});return elements.get(id)};
+const ctx=vm.createContext({console,Intl,Date,Set,TextEncoder,URL,Blob,File:global.File,document:{getElementById:el,querySelector:el,addEventListener(){},visibilityState:'visible',body:{style:{},appendChild(){}}},window:{addEventListener(){}},navigator:{userAgent:''},matchMedia:()=>({matches:false}),localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},setInterval(){},setTimeout(){}});
+vm.runInContext(source,ctx);
+const run=s=>vm.runInContext(s,ctx);
+run(`var fixture={id:'test',nombre:'Prueba',banco:'Banco',ult:'1234',corte:15,modo:'dia',limite:5,dias:20,linea:10000,saldo:100.35,pni:80,color:'#2563EB',pagado:'',seguimiento:'2026-09-15',pagos:[]};`);
+assert.equal(run(`iso(payInfo(fixture,new Date(2026,9,6,12)).due)`),'2026-10-05');
+assert.equal(run(`iso(payInfo(fixture,new Date(2026,11,6,12)).due)`),'2026-10-05');
+assert.equal(run(`payInfo({...fixture,pagos:['2026-10-05']},new Date(2026,9,6,12)).paid`),true);
+assert.equal(run(`iso(payInfo({...fixture,pagos:['2026-10-05']},new Date(2026,10,6,12)).due)`),'2026-11-05');
+assert.equal(run(`iso(mk(2028,1,31))`),'2028-02-29');
+assert.equal(run(`iso(buyInfo(fixture,new Date(2026,9,16,12)).due)`),'2026-12-05');
+assert.match(run(`money.format(100.35)`),/100\.35/);
+for(const patch of [`corte:'<img onerror=alert(1)>'`,`linea:-1`,`saldo:Infinity`,`color:'red;background:url(https://evil.test)'`,`modo:'otro'`,`pagos:['2026-02-31']`,`corte:15.5`])assert.throws(()=>run(`normalizeCards([{...fixture,${patch}}])`));
+assert.throws(()=>run('normalizeCards([fixture,fixture])'));
+assert.equal(run(`fold('á😀'.repeat(100)).split('\\r\\n').every(l=>new TextEncoder().encode(l).length<=75)`),true);
+run(`cards=normalizeCards([fixture]);writeAll(cards);cards=readAll();render()`);assert.equal(run('cards[0].saldo'),100.35);assert.equal(run('cards[0].seguimiento'),'2026-09-15');
+assert.equal(run(`normalizeCards([{...fixture,seguimiento:undefined,pagos:undefined}])[0].id`),'test');
+run(`cards[0].pagos=['2026-10-05'];writeAll(cards);cards=readAll()`);assert.equal(run('cards[0].pagos[0]'),'2026-10-05');
+const manifest=JSON.parse(fs.readFileSync(new URL('../manifest.webmanifest','file://'+__filename)));for(const i of manifest.icons)assert(fs.existsSync(new URL('../'+i.src,'file://'+__filename)));
+console.log('PASS: fechas vencidas, cambio de mes, confirmación de pago, año bisiesto, compra tras corte, centavos, validación de respaldo, IDs duplicados, ICS UTF-8, migración y persistencia.');
+// Ejecución real de handlers de SW con cache/fetch simulados.
+(async()=>{
+const handlers={},cacheData=new Map(),removed=[];let offline=false;
+const cache={addAll:async urls=>{for(const u of urls)cacheData.set(u,new Response(u.includes('privacidad')?'PRIVACIDAD':'APP'))},put:async(k,r)=>cacheData.set(typeof k==='string'?k:k.url,r),match:async(k)=>{const r=cacheData.get(typeof k==='string'?k:k.url);return r?.clone()}};
+const scope='https://example.test/mis-tarjetas/';
+vm.runInNewContext(fs.readFileSync(new URL('../sw.js','file://'+__filename),'utf8'),{URL,Response,self:{registration:{scope},location:{origin:'https://example.test'},clients:{claim:async()=>{}},addEventListener:(n,h)=>handlers[n]=h},caches:{open:async()=>cache,keys:async()=>['unrelated','lba-mis-tarjetas-/mis-tarjetas/-old'],delete:async k=>removed.push(k)},fetch:async req=>{if(offline)throw Error('offline');return new Response(req.url.includes('privacidad')?'PRIVACIDAD':'APP')}});
+let p;handlers.install({waitUntil:x=>p=x});await p;handlers.activate({waitUntil:x=>p=x});await p;assert(!removed.includes('unrelated'));
+const navigate=async path=>{let response;handlers.fetch({request:{method:'GET',mode:'navigate',url:scope+path},respondWith:r=>response=r});return (await response).text()};
+assert.equal(await navigate('privacidad.html'),'PRIVACIDAD');offline=true;assert.equal(await navigate('index.html'),'APP');assert.equal(await navigate('privacidad.html'),'PRIVACIDAD');console.log('PASS: caché independiente de privacidad/inicio y conservación de cachés ajenas.');
+})().catch(e=>{console.error(e);process.exitCode=1});

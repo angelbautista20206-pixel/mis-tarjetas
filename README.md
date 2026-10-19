@@ -1,57 +1,43 @@
-# Mis Tarjetas
+# Mis Tarjetas · LBA Automate
 
-App web instalable (PWA) para controlar tarjetas de crédito: fechas de corte, fechas límite de pago,
-qué tarjeta conviene usar cada día y el consolidado de crédito autorizado.
-Los datos se guardan solo en el dispositivo de cada usuario. No hay servidor ni cuentas.
+PWA para registrar tarjetas, fechas estimadas, saldos manuales y confirmaciones de pago. Conserva los datos en el navegador, sin cuentas ni sincronización bancaria.
 
-## Archivos
+## Publicación
 
-| Archivo | Para qué sirve |
-|---|---|
-| `index.html` | La app completa |
-| `manifest.webmanifest` | Nombre, ícono y colores al instalarla |
-| `sw.js` | Hace que funcione sin conexión |
-| `icons/` | Íconos para Android, iPhone y navegador |
-| `privacidad.html` | Aviso de privacidad (pon tu correo de contacto antes de publicar) |
+Conservar `index.html`, `privacidad.html`, `manifest.webmanifest`, `sw.js` y la carpeta `assets/` en la raíz del repositorio. El isotipo se obtuvo del sitio oficial de LBA Automate. Los iconos antiguos de la raíz se conservan por compatibilidad, pero ya no se referencian.
 
-## Publicarla gratis en GitHub Pages
+GitHub Pages: publicar la rama elegida desde `/ (root)`. Mantener la misma URL/origen para conservar el acceso al almacenamiento existente.
 
-1. Crea una cuenta en https://github.com (si no tienes).
-2. Crea un repositorio nuevo, por ejemplo `mis-tarjetas`, marcado como **Public**.
-3. En el repositorio: **Add file → Upload files**. Arrastra todo el contenido de esta carpeta
-   (index.html, manifest.webmanifest, sw.js, privacidad.html y la carpeta icons) y da **Commit changes**.
-4. Ve a **Settings → Pages**. En *Source* elige **Deploy from a branch**, rama **main**, carpeta **/ (root)** y guarda.
-5. En uno o dos minutos tu app queda en: `https://TU-USUARIO.github.io/mis-tarjetas/`
-6. Comparte ese link. Debe abrirse con **https** para que se pueda instalar.
+## Actualizar una instalación existente
 
-Alternativa sin GitHub: entra a https://app.netlify.com/drop y arrastra la carpeta completa.
+1. Descargar un respaldo antes de actualizar.
+2. Publicar los archivos completos, incluida la carpeta assets.
+3. Abrir la app con conexión y luego cerrar todas sus ventanas/pestañas. Volver a abrir para que tome el nuevo service worker. No borrar los datos del sitio.
+4. Confirmar que las tarjetas permanecen guardadas.
 
-## Cómo la instalan tus usuarios
+Se mantiene la clave `mis-tarjetas-v1` del almacenamiento. La primera lectura válida añade un punto de inicio para el seguimiento de pagos y conserva el campo de pago anterior. No reconstruye un historial bancario: el usuario debe revisar los periodos anteriores en sus estados de cuenta. Desde ese punto de inicio, los periodos sin confirmar permanecen visibles aunque cambie el mes.
 
-- **Android (Chrome):** abrir el link → aparece "Instalar" en la app o en el menú ⋮ → *Instalar app*.
-- **iPhone (Safari):** abrir el link → botón Compartir → *Agregar a pantalla de inicio*.
-- **Computadora (Chrome/Edge):** ícono de instalar en la barra de direcciones.
+## Seguridad y privacidad
 
-## Recordatorios
+- No introducir número completo de tarjeta, CVV, NIP ni accesos bancarios.
+- El navegador y los respaldos JSON no se cifran por la app.
+- El respaldo se valida antes de guardar; el reemplazo solicita confirmación. No combina archivos.
+- Si el almacenamiento existente no se puede interpretar, la app bloquea sobrescrituras para evitar pérdida silenciosa.
+- Marcar pagado registra una confirmación manual; no realiza transacciones ni cambia saldos.
+- La comparación ordena por días hasta la fecha estimada; no es una evaluación de tasas, comisiones o capacidad de pago.
 
-El botón **Agregar pagos a mi calendario** genera un archivo `.ics` con los próximos 12 meses de
-fechas límite y cortes de cada tarjeta. Cada pago trae dos alertas: 3 días antes y un día antes, a las 9:00.
-Al abrirlo en el celular se importa al calendario (Google Calendar, Calendario de iPhone, Outlook).
-Si cambias fechas de una tarjeta, vuelve a exportar; los eventos usan el mismo identificador,
-así que la mayoría de los calendarios los actualizan en lugar de duplicarlos.
+## Calendario
 
-## Respaldos
+Exportación ICS estática. No se sincroniza ni actualiza sola. Los importes son referencias capturadas al exportar. Cambiar fechas o volver a importar puede duplicar eventos según el calendario: revisar y eliminar eventos anteriores cuando corresponda. La entrega de alertas depende de la aplicación de calendario y sus permisos.
 
-Como los datos viven solo en el dispositivo, recomienda a los usuarios usar **Descargar respaldo**
-de vez en cuando y **Restaurar respaldo** al cambiar de celular.
+## Verificación
 
-## Publicar cambios
+`node tests/regression.cjs`
 
-1. Sube los archivos modificados al repositorio.
-2. En `sw.js` cambia `VERSION` (por ejemplo `mis-tarjetas-v2`) para que los celulares descarguen la versión nueva.
+Pruebas de lógica de pagos, años bisiestos, montos, validación de respaldos, persistencia, ICS UTF-8 y caché por página mediante entorno simulado. No requieren dependencias.
 
-## Siguiente paso: Google Play
+Pendiente antes de publicación definitiva: comprobar visualmente en Chrome/Android y Safari/iPhone, instalar la PWA y verificar exportación/importación del calendario real. La ejecución de Chromium local no estuvo disponible en el entorno de preparación.
 
-Cuando quieras publicarla en la tienda se puede empaquetar con Capacitor o con PWABuilder
-(https://www.pwabuilder.com), que genera el paquete para Android a partir del link de GitHub Pages.
-Necesitarás una cuenta de Google Play Console (pago único de 25 USD) y el aviso de privacidad publicado.
+## Identidad
+
+Azul principal #2563EB, azul marino #0B1F3A, fondo #F5F8FC, isotipo oficial y tipografía del sistema sin solicitudes a Google Fonts. Vista clara y oscura adaptable a las preferencias del dispositivo.

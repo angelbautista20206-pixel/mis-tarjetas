@@ -1,5 +1,5 @@
 {
-  "name": "Mis Tarjetas",
+  "name": "Mis Tarjetas · LBA Automate",
   "short_name": "Mis Tarjetas",
   "description": "Controla tus tarjetas de crédito, fechas de corte y límites de pago.",
   "lang": "es-MX",
@@ -8,12 +8,18 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ECF0EE",
-  "theme_color": "#0A6B58",
-  "categories": ["finance", "productivity"],
+  "background_color": "#F5F8FC",
+  "theme_color": "#2563EB",
+  "categories": [
+    "finance",
+    "productivity"
+  ],
   "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "assets/lba-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }

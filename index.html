@@ -3,35 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0A6B58">
+<meta name="theme-color" content="#2563EB">
 <meta name="description" content="Controla tus tarjetas de crédito, fechas de corte y límites de pago.">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="assets/lba-logo.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/lba-logo.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mis Tarjetas">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Mis Tarjetas y Pagos</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<title>Mis Tarjetas · LBA Automate</title>
+
+
 <style>
 /* Layout: una columna de trabajo — "qué tarjeta usar" arriba, pagos próximos, tarjetas, calendario 60 días */
 :root{
-  --bg:#ECF0EE; --surface:#FFFFFF; --sunk:#F5F7F6; --ink:#13201E; --muted:#5A6965; --line:#D3DBD8;
-  --accent:#0A6B58; --accent-ink:#FFFFFF; --accent-soft:#DCEFE9;
+  --bg:#F5F8FC; --surface:#FFFFFF; --sunk:#F3F6FB; --ink:#0B1F3A; --muted:#526278; --line:#DDE5EF;
+  --accent:#2563EB; --accent-ink:#FFFFFF; --accent-soft:#EBF2FF;
   --ok:#1D7A49; --ok-soft:#DDF2E4; --warn:#9A6212; --warn-soft:#FBEBD0; --bad:#B42318; --bad-soft:#FBE1DE;
-  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
-  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --f-display:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E1514; --surface:#162120; --sunk:#111A19; --ink:#E4ECEA; --muted:#93A39F; --line:#293735;
-  --accent:#4FC3A5; --accent-ink:#06211B; --accent-soft:#173A33;
+  --bg:#081527; --surface:#10233B; --sunk:#0C1B30; --ink:#E4ECEA; --muted:#93A39F; --line:#2A3F59;
+  --accent:#82B0FF; --accent-ink:#081527; --accent-soft:#193455;
   --ok:#5BD08E; --ok-soft:#163626; --warn:#E9B05A; --warn-soft:#3A2B13; --bad:#F2877C; --bad-soft:#3E1C19; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0E1514; --surface:#162120; --sunk:#111A19; --ink:#E4ECEA; --muted:#93A39F; --line:#293735;
-  --accent:#4FC3A5; --accent-ink:#06211B; --accent-soft:#173A33;
+  --bg:#081527; --surface:#10233B; --sunk:#0C1B30; --ink:#E4ECEA; --muted:#93A39F; --line:#2A3F59;
+  --accent:#82B0FF; --accent-ink:#081527; --accent-soft:#193455;
   --ok:#5BD08E; --ok-soft:#163626; --warn:#E9B05A; --warn-soft:#3A2B13; --bad:#F2877C; --bad-soft:#3E1C19; color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -185,15 +185,21 @@ fieldset{border:0;padding:0;margin:0}
   .cards{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:no-preference){.btn{transition:border-color .15s}}
+
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:10px;align-items:center;text-decoration:none;color:var(--ink)}.brand img{border-radius:10px;object-fit:contain;background:white}.brand strong{display:block;font-size:16px;letter-spacing:.06em}.brand small{display:block;font-size:9px;letter-spacing:.12em;color:var(--muted)}.brandtag{font-size:12px;color:var(--muted)}
+.intro{margin:7px 0 0;color:var(--muted);font-size:15px}.today{font-size:12px;margin-bottom:6px}.comparison-note{font-size:12px;color:var(--muted);margin:0}.hero,.sum,.card,.pay-list,.cal{border-radius:20px;box-shadow:0 4px 16px #0b1f3a04}.sum{border-top:3px solid var(--accent);padding:24px}.kpi{padding:8px 0}.kpi b{font-weight:650;letter-spacing:-.035em}.btn{min-height:44px;border-radius:10px}.hero{background:var(--accent-soft)}.rank-row{padding:13px 0}.sheet{border-radius:20px}.pay .name{overflow-wrap:anywhere}.seg label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:560px){body{padding-block:16px 32px}.wrap{gap:22px}.brandtag{display:none}.top>div{width:100%}.top .toolbar{display:grid;grid-template-columns:1fr 1fr;width:100%}.top .toolbar .primary{order:-1}.top .toolbar .btn{font-size:13px;padding:9px}.hero,.sum,.card{padding:16px}.kpi b{font-size:19px}.cal{padding:6px 12px}.cal-row{grid-template-columns:8ch auto minmax(0,1fr);gap:8px}.cal-row>span:last-child{grid-column:3}.cal-row .dt{font-size:12px}.brand strong{font-size:14px}.pay{padding:12px;gap:10px}.sheet{padding:18px}.card .usage>div{gap:10px;flex-wrap:wrap}}
 </style>
 
 </head>
 <body>
 <div class="wrap">
+  <div class="brandbar"><a class="brand" href="https://lbaautomate.com" aria-label="LBA Automate, sitio web"><img src="assets/lba-logo.png" width="48" height="48" alt=""><span><strong>LBA AUTOMATE</strong><small>LEAN BUSINESS AUTOMATION</small></span></a><span class="brandtag">Finanzas personales</span></div>
   <header class="top">
     <div>
       <div class="today" id="todayLbl"></div>
-      <h1>Mis tarjetas</h1>
+      <h1>Mis tarjetas</h1><p class="intro">Tus fechas, pagos y crédito. En un solo lugar.</p>
     </div>
     <div style="display:grid;gap:6px;justify-items:end">
       <div class="toolbar">
@@ -214,23 +220,23 @@ fieldset{border:0;padding:0;margin:0}
     <button class="btn primary" type="button" id="addBtn2">Agregar mi primera tarjeta</button>
   </div>
 
-  <section class="hero" aria-labelledby="heroTitle">
-    <div class="hero-head">
-      <h2 id="heroTitle">¿Con cuál tarjeta compro?</h2>
-      <label for="buyDate">Fecha de compra <input type="date" id="buyDate"></label>
-    </div>
-    <div id="heroPick"></div>
-    <div class="rank" id="rank"></div>
-  </section>
-
   <section class="section" aria-labelledby="sumTitle">
     <div class="section-head"><h2 id="sumTitle">Consolidado de crédito</h2><span class="muted" style="font-size:13px">Suma de todas tus tarjetas</span></div>
     <div class="sum" id="sum"></div>
   </section>
 
   <section class="section" aria-labelledby="payTitle">
-    <div class="section-head"><h2 id="payTitle">Próximos pagos</h2><span class="muted" style="font-size:13px">Márcalos como pagados para que dejen de avisarte</span></div>
+    <div class="section-head"><h2 id="payTitle">Próximos pagos</h2><span class="muted" style="font-size:13px">Registra los pagos de cada periodo</span></div>
     <div class="pay-list" id="payList"></div>
+  </section>
+
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="hero-head">
+      <h2 id="heroTitle">Compara tus fechas de pago</h2>
+      <label for="buyDate">Fecha de compra <input type="date" id="buyDate"></label>
+    </div>
+    <div id="heroPick"></div>
+    <div class="rank" id="rank"></div><p class="comparison-note">Comparación de fechas estimadas; no considera intereses, comisiones ni el importe de una compra. Confirma las fechas en tu estado de cuenta.</p>
   </section>
 
   <section class="section" aria-labelledby="cardsTitle">
@@ -250,11 +256,12 @@ fieldset{border:0;padding:0;margin:0}
     <span>Tus tarjetas se guardan solo en este dispositivo y no se envían a ningún servidor. Si cambias de celular o borras los datos del navegador se pierden, así que haz un respaldo de vez en cuando.</span>
     <span class="toolbar" style="justify-content:flex-start"><button class="btn" type="button" id="backupBtn">Descargar respaldo</button><label class="btn" for="restoreFile" style="display:inline-block">Restaurar respaldo</label><input type="file" id="restoreFile" accept=".json,application/json" hidden></span>
     <span><a href="privacidad.html" style="color:var(--muted)">Aviso de privacidad</a></span>
+    <span>Los saldos y pagos son capturados manualmente; marcar un periodo como pagado no modifica el saldo ni confirma un pago con el banco. Al actualizar se toma como inicio el último corte conocido: revisa los periodos anteriores en tus estados de cuenta.</span>
     <span>No guardes aquí números completos de tarjeta, CVV ni NIP. Solo pide los últimos 4 dígitos para identificarlas.</span>
   </div>
 </div>
 
-<div class="modal" id="modal" hidden>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle" hidden>
   <form class="sheet" id="form" novalidate>
     <h2 id="formTitle">Nueva tarjeta</h2>
     <div class="grid2">
@@ -282,7 +289,7 @@ fieldset{border:0;padding:0;margin:0}
     </div>
     <div class="field"><label for="f-pni">Pago para no generar intereses <span class="muted">(opcional)</span></label><input type="number" id="f-pni" min="0" step="any" placeholder="$ del último estado de cuenta"></div>
     <div class="field"><span class="label" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)">Color</span><div class="colors" id="colors"></div></div>
-    <div class="err" id="formErr" hidden></div>
+    <div class="err" id="formErr" role="alert" hidden></div>
     <div id="confirmDel" class="confirm" hidden><span>¿Eliminar esta tarjeta?</span><button type="button" class="btn danger" id="delYes">Sí, eliminar</button><button type="button" class="btn ghost" id="delNo">Cancelar</button></div>
     <div class="sheet-foot">
       <button type="button" class="btn danger" id="delBtn" hidden>Eliminar</button>
@@ -314,7 +321,7 @@ const fCorta=new Intl.DateTimeFormat("es-MX",{day:"numeric",month:"short"});
 const fLarga=new Intl.DateTimeFormat("es-MX",{weekday:"short",day:"numeric",month:"short"});
 const fMes=new Intl.DateTimeFormat("es-MX",{month:"long",year:"numeric"});
 const fHoy=new Intl.DateTimeFormat("es-MX",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-const money=new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0});
+const money=new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",minimumFractionDigits:2,maximumFractionDigits:2});
 const corta=d=>fCorta.format(d).replace(".","");
 const larga=d=>fLarga.format(d).replace(/\./g,"");
 const finde=d=>d.getDay()===0||d.getDay()===6;
@@ -331,15 +338,21 @@ function dueFor(c,cut){
 /* Compra en fecha d: entra al corte >= d */
 function buyInfo(c,d){const cut=cutOnOrAfter(c,d),due=dueFor(c,cut);return{cut,due,days:diff(d,due)}}
 function payInfo(c,t){
-  const last=cutBefore(c,t),lastDue=dueFor(c,last);
-  const cur=cutOnOrAfter(c,t),curDue=dueFor(c,cur);
-  let p=lastDue>=t?{cut:last,due:lastDue,next:{cut:cur,due:curDue}}:{cut:cur,due:curDue,next:{cut:nextCut(c,cur),due:dueFor(c,nextCut(c,cur))}};
-  const paid=c.pagado===iso(p.due);
-  return{...p,paid,days:diff(t,p.due)};
+  // Mantener el primer periodo sin confirmar, aunque venza o cambie el mes.
+  let cut=c.seguimiento?parseIso(c.seguimiento):cutBefore(c,t);
+  const paidDates=new Set([...(c.pagos||[]),c.pagado].filter(Boolean));
+  let due=dueFor(c,cut), paid=paidDates.has(iso(due));
+  for(let i=0;i<1200&&paid;i++){
+    const next=nextCut(c,cut);
+    if(next>t)break;
+    cut=next;due=dueFor(c,cut);paid=paidDates.has(iso(due));
+  }
+  const nx=nextCut(c,cut);
+  return{cut,due,paid,next:{cut:nx,due:dueFor(c,nx)},days:diff(t,due)};
 }
 function status(days,paid){
   if(paid)return["ok","Pagado"];
-  if(days<0)return["bad","Vencido"];
+  if(days<0)return["bad","Vencido · sin confirmar"];
   if(days===0)return["bad","Vence hoy"];
   if(days<=3)return["bad",`Vence en ${days} día${days>1?"s":""}`];
   if(days<=7)return["warn",`Vence en ${days} días`];
@@ -367,7 +380,7 @@ function render(){
   const best=ranked[0], max=Math.max(...ranked.map(r=>r.days),1);
   const esHoy=iso(bd)===iso(t);
   $("heroPick").innerHTML=best?`<div class="pick">${sw(best.c)}
-    <div><div class="label">${esHoy?"Hoy conviene usar":"El "+larga(bd)+" conviene usar"}</div>
+    <div><div class="label">${esHoy?"Más días hasta el pago":"Compra del "+larga(bd)}</div>
     <div class="big">${title(best.c)}</div>
     <div class="muted" style="font-size:14px">${esc(best.c.banco)} · entra al corte del ${corta(best.cut)} · pagas a más tardar el <b style="color:var(--ink)">${larga(best.due)}</b></div></div>
     <div class="days"><b>${best.days}</b><span class="muted">días para pagar</span></div></div>`:"";
@@ -440,7 +453,7 @@ function render(){
     for(let i=0;i<4;i++){
       if(cut>=t&&cut<=end)ev.push({d:cut,type:"corte",c});
       const du=dueFor(c,cut);
-      if(du>=t&&du<=end)ev.push({d:du,type:"pago",c,paid:c.pagado===iso(du)});
+      if(du>=t&&du<=end)ev.push({d:du,type:"pago",c,paid:(c.pagos||[]).includes(iso(du))||c.pagado===iso(du)});
       cut=nextCut(c,cut);
     }
   }
@@ -458,10 +471,11 @@ function render(){
 }
 
 /* ---------- Formulario ---------- */
-let pickedColor=COLORS[0];
+let pickedColor=COLORS[0], returnFocus=null;
 function drawColors(){$("colors").innerHTML=COLORS.map(c=>`<button type="button" style="background:${c}" aria-label="Color ${c}" aria-pressed="${c===pickedColor}" data-color="${c}"></button>`).join("")}
 function syncModo(){const d=$("f-modo-dias").checked;$("wrapDias").hidden=!d;$("wrapDia").hidden=d}
 function openForm(c){
+  returnFocus=document.activeElement;document.querySelector(".wrap").inert=true;document.body.style.overflow="hidden";
   editing=c||null;
   $("formTitle").textContent=c?"Editar tarjeta":"Nueva tarjeta";
   $("f-nombre").value=c?.nombre||"";$("f-banco").value=c?.banco||"";$("f-ult").value=c?.ult||"";
@@ -472,31 +486,32 @@ function openForm(c){
   $("delBtn").hidden=!c;$("confirmDel").hidden=true;$("formErr").hidden=true;
   $("modal").hidden=false;setTimeout(()=>$("f-nombre").focus(),30);
 }
-function closeForm(){$("modal").hidden=true;editing=null}
+function closeForm(){$("modal").hidden=true;editing=null;document.querySelector(".wrap").inert=false;document.body.style.overflow="";if(returnFocus?.isConnected)returnFocus.focus();else $("addBtn").focus()}
 function num(id){const v=$(id).value.trim();return v===""?0:Number(v)}
 
 $("form").addEventListener("submit",async e=>{
   e.preventDefault();
   const err=m=>{$("formErr").textContent=m;$("formErr").hidden=false};
-  const nombre=$("f-nombre").value.trim(),corte=parseInt($("f-corte").value,10);
-  const modo=$("f-modo-dias").checked?"dias":"dia",limite=parseInt($("f-limite").value,10),dias=parseInt($("f-dias").value,10);
+  const nombre=$("f-nombre").value.trim(),corte=Number($("f-corte").value);
+  const modo=$("f-modo-dias").checked?"dias":"dia",limite=Number($("f-limite").value),dias=Number($("f-dias").value);
   const ult=$("f-ult").value.replace(/\D/g,"").slice(0,4);
   if(!nombre)return err("Escribe un nombre para la tarjeta.");
-  if(!(corte>=1&&corte<=31))return err("El día de corte debe estar entre 1 y 31.");
-  if(modo==="dia"&&!(limite>=1&&limite<=31))return err("El día límite de pago debe estar entre 1 y 31.");
-  if(modo==="dias"&&!(dias>=1&&dias<=60))return err("Los días después del corte deben estar entre 1 y 60.");
+  if(!(Number.isInteger(corte)&&corte>=1&&corte<=31))return err("El día de corte debe estar entre 1 y 31.");
+  if(modo==="dia"&&!(Number.isInteger(limite)&&limite>=1&&limite<=31))return err("El día límite de pago debe estar entre 1 y 31.");
+  if(modo==="dias"&&!(Number.isInteger(dias)&&dias>=1&&dias<=60))return err("Los días después del corte deben estar entre 1 y 60.");
+  if(![num("f-linea"),num("f-saldo"),num("f-pni")].every(n=>Number.isFinite(n)&&n>=0&&n<=1e12))return err("Los montos deben ser números válidos entre 0 y un billón.");
   const data={nombre,banco:$("f-banco").value.trim(),ult,corte,modo,limite:modo==="dia"?limite:0,dias:modo==="dias"?dias:20,
-    linea:num("f-linea"),saldo:num("f-saldo"),pni:num("f-pni"),color:pickedColor,pagado:editing?.pagado||""};
+    linea:num("f-linea"),saldo:num("f-saldo"),pni:num("f-pni"),color:pickedColor,pagado:editing?.pagado||"",pagos:editing?.pagos||[],seguimiento:editing?.seguimiento||iso(cutBefore({corte},today()))};
   const id=editing?.id||("t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
   $("saveBtn").disabled=true;
-  try{await store.save(id,data);closeForm()}catch(x){err("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.")}
+  try{await store.save(id,data);closeForm()}catch(x){err("No se pudo guardar. Revisa el espacio y los permisos de almacenamiento del navegador.")}
   finally{$("saveBtn").disabled=false}
 });
 $("colors").addEventListener("click",e=>{const b=e.target.closest("[data-color]");if(b){pickedColor=b.dataset.color;drawColors()}});
 $("f-modo-dia").addEventListener("change",syncModo);$("f-modo-dias").addEventListener("change",syncModo);
 $("cancelBtn").onclick=closeForm;
 $("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeForm()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)closeForm()});
+document.addEventListener("keydown",e=>{if(e.key==="Tab"&&!$("modal").hidden){const f=[...$("modal").querySelectorAll('button,input,select')].filter(x=>!x.disabled&&x.getClientRects().length);const a=f[0],b=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();b.focus()}else if(!e.shiftKey&&document.activeElement===b){e.preventDefault();a.focus()}}if(e.key==="Escape"&&!$("modal").hidden)closeForm()});
 $("delBtn").onclick=()=>{$("confirmDel").hidden=false};
 $("delNo").onclick=()=>{$("confirmDel").hidden=true};
 $("delYes").onclick=async()=>{try{await store.remove(editing.id);closeForm()}catch(x){$("formErr").textContent="No se pudo eliminar.";$("formErr").hidden=false}};
@@ -504,21 +519,44 @@ $("addBtn").onclick=()=>openForm();$("addBtn2").onclick=()=>openForm();
 document.addEventListener("click",async e=>{
   const ed=e.target.closest("[data-edit]");if(ed){openForm(cards.find(c=>c.id===ed.dataset.edit));return}
   const pb=e.target.closest("[data-pay]");if(pb){const c=cards.find(x=>x.id===pb.dataset.pay);if(!c)return;
-    const val=c.pagado===pb.dataset.due?"":pb.dataset.due;pb.disabled=true;
-    try{await store.save(c.id,{...c,pagado:val})}catch(x){pb.disabled=false}}
+    const done=new Set([...(c.pagos||[]),c.pagado].filter(Boolean));if(done.has(pb.dataset.due))done.delete(pb.dataset.due);else done.add(pb.dataset.due);pb.disabled=true;
+    try{await store.save(c.id,{...c,pagado:"",pagos:[...done]})}catch(x){pb.disabled=false;toast("No se pudo guardar el pago. Revisa el almacenamiento del navegador.")}}
 });
 $("buyDate").addEventListener("change",render);
 $("buyDate").value=iso(today());
 
 /* ---------- Almacenamiento local ---------- */
 const KEY="mis-tarjetas-v1";
-function readAll(){try{const a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
-function writeAll(a){localStorage.setItem(KEY,JSON.stringify(a))}
+function validDate(s){return typeof s==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&iso(parseIso(s))===s}
+function normalizeCards(arr){
+  if(!Array.isArray(arr)||arr.length>500)throw Error("Cantidad de tarjetas no válida");
+  const ids=new Set();
+  return arr.map(c=>{
+    if(!c||typeof c!=="object"||typeof c.id!=="string"||!/^[-a-zA-Z0-9_]{1,80}$/.test(c.id)||ids.has(c.id))throw Error("Identificador no válido o repetido");
+    ids.add(c.id);
+    if(typeof c.nombre!=="string"||!c.nombre.trim()||c.nombre.length>40||typeof c.banco!=="string"||c.banco.length>30)throw Error("Nombre o banco no válido");
+    const integer=(n,max)=>Number.isInteger(n)&&n>=1&&n<=max;
+    if(!integer(c.corte,31)||!["dia","dias"].includes(c.modo)||(c.modo==="dia"?!integer(c.limite,31):!integer(c.dias,60)))throw Error("Fechas no válidas");
+    for(const k of ["linea","saldo","pni"])if(typeof c[k]!=="number"||!Number.isFinite(c[k])||c[k]<0||c[k]>1e12)throw Error("Monto no válido");
+    if(c.color&&!/^#[0-9a-f]{6}$/i.test(c.color))throw Error("Color no válido");
+    const pagos=c.pagos||[];
+    if(!Array.isArray(pagos)||pagos.length>1200||!pagos.every(validDate)||(c.pagado&&!validDate(c.pagado)))throw Error("Pagos no válidos");
+    const seguimiento=c.seguimiento||iso(cutBefore(c,today()));
+    if(!validDate(seguimiento)||parseIso(seguimiento).getFullYear()<2000||parseIso(seguimiento).getFullYear()>2100)throw Error("Periodo no válido");
+    return {id:c.id,nombre:c.nombre.trim(),banco:c.banco,ult:String(c.ult||"").replace(/\D/g,"").slice(0,4),corte:c.corte,modo:c.modo,limite:c.modo==="dia"?c.limite:0,dias:c.modo==="dias"?c.dias:20,linea:c.linea,saldo:c.saldo,pni:c.pni,color:c.color||COLORS[0],pagado:c.pagado||"",pagos:[...new Set(pagos)],seguimiento};
+  });
+}
+let storageFault=false;
+function readAll(){
+  try{return normalizeCards(JSON.parse(localStorage.getItem(KEY)||"[]"))}
+  catch(e){storageFault=true;return []}
+}
+function writeAll(a){if(storageFault)throw Error("Almacenamiento ilegible: no se sobrescribirá");localStorage.setItem(KEY,JSON.stringify(normalizeCards(a)))}
 store={
   save:async(id,d)=>{const a=readAll().filter(c=>c.id!==id);a.push({id,...d});writeAll(a);cards=a;render()},
   remove:async id=>{const a=readAll().filter(c=>c.id!==id);writeAll(a);cards=a;render()}
 };
-function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3200)}
+function toast(m){const t=document.createElement("div");t.setAttribute("role","status");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3200)}
 
 /* ---------- Archivos (calendario y respaldo) ---------- */
 async function deliver(name,text,type){
@@ -530,9 +568,9 @@ async function deliver(name,text,type){
   const url=URL.createObjectURL(blob),a=document.createElement("a");
   a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
 }
-const icsEsc=s=>String(s||"").replace(/\\/g,"\\\\").replace(/[,;]/g,m=>"\\"+m).replace(/\n/g,"\\n");
+const icsEsc=s=>String(s||"").replace(/\\/g,"\\\\").replace(/[,;]/g,m=>"\\"+m).replace(/\r\n|\r|\n/g,"\\n");
 const icsDate=d=>iso(d).replace(/-/g,"");
-function fold(line){const out=[];while(line.length>60){out.push(line.slice(0,60));line=" "+line.slice(60)}out.push(line);return out.join("\r\n")}
+function fold(line){const out=[];let chunk="",bytes=0;for(const c of line){const n=new TextEncoder().encode(c).length;if(bytes+n>75){out.push(chunk);chunk=" ";bytes=1}chunk+=c;bytes+=n}out.push(chunk);return out.join("\r\n")}
 function buildIcs(){
   const t=today(),now=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
   const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Mis Tarjetas//ES","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Pagos de tarjetas"];
@@ -542,7 +580,7 @@ function buildIcs(){
     for(let i=0;i<13;i++){
       const due=dueFor(c,cut);
       if(due>=t){
-        const desc=`Corte del ${larga(cut)}. Compras hasta esa fecha se pagan hoy.`+(c.pni?` Último pago para no generar intereses capturado: ${money.format(c.pni)}.`:"")+(finde(due)?" Cae en fin de semana: paga antes.":"");
+        const desc=`Corte del ${larga(cut)}. Compras hasta esa fecha se pagan hoy.`+(c.pni?` Importe de referencia al exportar (no se actualiza automáticamente): ${money.format(c.pni)}.`:"")+(finde(due)?" Cae en fin de semana: paga antes.":"");
         L.push("BEGIN:VEVENT","UID:pago-"+c.id+"-"+icsDate(due)+"@mistarjetas","DTSTAMP:"+now,
           "DTSTART;VALUE=DATE:"+icsDate(due),"DTEND;VALUE=DATE:"+icsDate(addDays(due,1)),
           "SUMMARY:"+icsEsc("Pagar "+nom),"DESCRIPTION:"+icsEsc(desc),"TRANSP:TRANSPARENT",
@@ -572,9 +610,11 @@ $("backupBtn").onclick=()=>{
 $("restoreFile").addEventListener("change",async e=>{
   const f=e.target.files[0];e.target.value="";if(!f)return;
   try{
-    const j=JSON.parse(await f.text()),arr=Array.isArray(j)?j:j.tarjetas;
-    if(!Array.isArray(arr)||!arr.every(c=>c&&c.id&&c.corte))throw 0;
-    const ok=arr.map(c=>({...c,ult:String(c.ult||"").replace(/\D/g,"").slice(0,4)}));
+    if(f.size>2*1024*1024)throw Error("El archivo supera 2 MB");
+    const j=JSON.parse(await f.text());
+    if(!Array.isArray(j)&&(j.app!=="mis-tarjetas"||j.version!==1))throw Error("Formato no compatible");
+    const ok=normalizeCards(Array.isArray(j)?j:j.tarjetas);
+    if(!confirm(`Se reemplazarán las ${cards.length} tarjetas actuales por ${ok.length} del respaldo. Descarga primero un respaldo si quieres conservar las actuales. ¿Continuar?`))return;
     writeAll(ok);cards=ok;render();toast(`Se restauraron ${ok.length} tarjeta${ok.length===1?"":"s"}.`);
   }catch(x){toast("Ese archivo no es un respaldo de Mis Tarjetas.")}
 });
@@ -595,6 +635,8 @@ window.addEventListener("appinstalled",()=>{$("installBox").hidden=true});
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 
 cards=readAll();ready=true;render();
+if(storageFault){$("emptyBanner").hidden=false;$("emptyBanner").textContent="No pudimos leer tus datos guardados. No los hemos reemplazado. Conserva un respaldo antes de borrar o restaurar el almacenamiento.";$("addBtn").disabled=true}
+else if(cards.length){try{writeAll(cards)}catch(e){toast("No se pudo guardar el seguimiento de periodos; haz un respaldo.")}}
 setInterval(()=>{if(document.visibilityState==="visible")render()},60*60*1000);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")render()});
 </script>
