@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A6B58">
+<meta name="description" content="Controla tus tarjetas de crédito, fechas de corte y límites de pago.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mis Tarjetas">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Mis Tarjetas y Pagos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: una columna de trabajo — "qué tarjeta usar" arriba, pagos próximos, tarjetas, calendario 60 días */
+:root{
+  --bg:#ECF0EE; --surface:#FFFFFF; --sunk:#F5F7F6; --ink:#13201E; --muted:#5A6965; --line:#D3DBD8;
+  --accent:#0A6B58; --accent-ink:#FFFFFF; --accent-soft:#DCEFE9;
+  --ok:#1D7A49; --ok-soft:#DDF2E4; --warn:#9A6212; --warn-soft:#FBEBD0; --bad:#B42318; --bad-soft:#FBE1DE;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1514; --surface:#162120; --sunk:#111A19; --ink:#E4ECEA; --muted:#93A39F; --line:#293735;
+  --accent:#4FC3A5; --accent-ink:#06211B; --accent-soft:#173A33;
+  --ok:#5BD08E; --ok-soft:#163626; --warn:#E9B05A; --warn-soft:#3A2B13; --bad:#F2877C; --bad-soft:#3E1C19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1514; --surface:#162120; --sunk:#111A19; --ink:#E4ECEA; --muted:#93A39F; --line:#293735;
+  --accent:#4FC3A5; --accent-ink:#06211B; --accent-soft:#173A33;
+  --ok:#5BD08E; --ok-soft:#163626; --warn:#E9B05A; --warn-soft:#3A2B13; --bad:#F2877C; --bad-soft:#3E1C19; color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.install{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(26px,5vw,34px);font-weight:700}
+h2{font-size:20px;font-weight:600}
+.num,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.label{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;font-weight:500}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
+.btn.ghost:hover{color:var(--ink)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.today{font-size:14px;color:var(--muted)}
+.store-note{font-size:12.5px;color:var(--muted)}
+
+/* Hero */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:18px}
+.hero-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+.hero-head label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.hero-head input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--sunk)}
+.pick{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.pick .big{font-family:var(--f-display);font-size:clamp(22px,4.4vw,30px);font-weight:700;line-height:1.15}
+.pick .days{text-align:right}
+.pick .days b{display:block;font-family:var(--f-mono);font-size:clamp(30px,6vw,44px);font-weight:500;color:var(--accent);line-height:1}
+.rank{display:grid;gap:0;border-top:1px solid var(--line)}
+.rank-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rank-row:last-child{border-bottom:0}
+.rank-row .d{font-family:var(--f-mono);font-variant-numeric:tabular-nums;min-width:4.5ch;text-align:right}
+.bar{height:6px;border-radius:3px;background:var(--sunk);overflow:hidden;width:90px}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.neutral{background:var(--sunk);color:var(--muted)}
+
+.swatch{width:34px;height:22px;border-radius:4px;flex:none;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.swatch::after{content:"";position:absolute;left:5px;top:6px;width:8px;height:6px;border-radius:1.5px;background:rgba(255,255,255,.55)}
+
+/* Pagos */
+.section{display:grid;gap:12px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.pay-list{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pay{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.pay:last-child{border-bottom:0}
+.pay .when{text-align:right}
+.pay .when b{font-family:var(--f-mono);font-weight:500;font-size:15px}
+.pay .name{font-weight:600}
+.pay .sub{font-size:13px;color:var(--muted)}
+
+/* Tarjetas */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;align-content:start;min-width:0}
+.card-head{display:flex;gap:12px;align-items:center}
+.card-head .t{min-width:0;flex:1}
+.card-head .t b{display:block;font-family:var(--f-display);font-size:17px;font-weight:600;overflow-wrap:anywhere}
+.card-head .t span{font-size:13px;color:var(--muted)}
+.dates{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dates div{background:var(--sunk);border-radius:8px;padding:8px 10px}
+.dates b{display:block;font-family:var(--f-mono);font-weight:500;font-size:14.5px}
+.window{display:grid;gap:6px;font-size:13.5px}
+.window .row{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:baseline}
+.window .dot{width:8px;height:8px;border-radius:50%;margin-top:6px}
+.window .dot.a{background:var(--accent)}
+.window .dot.b{background:var(--muted)}
+.usage{display:grid;gap:4px;font-size:13px}
+.usage .bar{width:100%}
+.card-foot{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:12px}
+.card.example{border-style:dashed}
+
+/* Calendario */
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 18px}
+.cal-row{display:grid;grid-template-columns:11.5ch auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.cal-row:last-child{border-bottom:0}
+.cal-row .dt{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.cal-row .tag{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:2px 6px}
+.cal-row .tag.corte{background:var(--sunk);color:var(--muted)}
+.cal-row .tag.pago{background:var(--accent-soft);color:var(--accent)}
+.month-sep{font-family:var(--f-display);font-weight:600;font-size:14px;padding:12px 0 4px;color:var(--ink);border-bottom:1px solid var(--line)}
+
+.empty-banner{background:var(--accent-soft);color:var(--ink);border-radius:12px;padding:14px 18px;display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.tips{font-size:13.5px;color:var(--muted);display:grid;gap:6px;max-width:70ch}
+
+/* Consolidado */
+.sum{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:18px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{display:grid;gap:2px;min-width:0}
+.kpi b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:500;font-size:clamp(18px,3.2vw,24px);overflow-wrap:anywhere}
+.kpi.main b{color:var(--accent)}
+.stack{display:flex;height:14px;border-radius:4px;overflow:hidden;background:var(--sunk);gap:2px}
+.stack i{display:block;height:100%}
+.sum-table{width:100%;border-collapse:collapse;font-size:14px}
+.sum-table th{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
+.sum-table th:first-child,.sum-table td:first-child{text-align:left;padding-left:0}
+.sum-table td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sum-table td:first-child{font-family:var(--f-body)}
+.sum-table tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--line)}
+.tscroll{overflow-x:auto}
+.ccell{display:flex;gap:10px;align-items:center}
+.ccell .swatch{width:26px;height:17px}
+.ccell .swatch::after{display:none}
+@media (max-width:560px){.kpis{grid-template-columns:1fr 1fr}}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(8,14,13,.45);display:grid;place-items:center;z-index:20;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--surface);border-radius:14px;width:100%;max-width:520px;max-height:100%;overflow:auto;padding:22px;display:grid;gap:16px;border:1px solid var(--line)}
+.field{display:grid;gap:5px}
+.field label,.field legend{font-size:13px;font-weight:600}
+.field input[type=text],.field input[type=number]{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--sunk);width:100%}
+.field .hint{font-size:12.5px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+fieldset{border:0;padding:0;margin:0}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg label{border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-weight:500;font-size:14px;cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked+span{color:var(--accent);font-weight:600}
+.seg label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.colors{display:flex;gap:8px;flex-wrap:wrap}
+.colors button{width:30px;height:30px;border-radius:6px;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.colors button[aria-pressed=true]{border-color:var(--ink)}
+.sheet-foot{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.err{color:var(--bad);font-size:13px}
+.confirm{background:var(--bad-soft);border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:14px}
+
+@media (max-width:560px){
+  .pick{grid-template-columns:auto 1fr}
+  .pick .days{grid-column:1/-1;text-align:left;display:flex;gap:10px;align-items:baseline}
+  .rank-row{grid-template-columns:auto minmax(0,1fr) auto}
+  .rank-row .bar{display:none}
+  .pay{grid-template-columns:auto minmax(0,1fr) auto}
+  .pay .chip{grid-column:2/-1;justify-self:start}
+  .grid2{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){.btn{transition:border-color .15s}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="today" id="todayLbl"></div>
+      <h1>Mis tarjetas</h1>
+    </div>
+    <div style="display:grid;gap:6px;justify-items:end">
+      <div class="toolbar">
+        <button class="btn" id="icsBtn" type="button">Agregar pagos a mi calendario</button>
+        <button class="btn primary" id="addBtn" type="button">+ Agregar tarjeta</button>
+      </div>
+      <span class="store-note">Tus datos se guardan solo en este dispositivo</span>
+    </div>
+  </header>
+
+  <div class="install" id="installBox" hidden>
+    <span id="installTxt">Instala Mis Tarjetas en tu celular para abrirla como app.</span>
+    <button class="btn primary" type="button" id="installBtn">Instalar</button>
+  </div>
+
+  <div id="emptyBanner" class="empty-banner" hidden>
+    <div><b>Estás viendo tarjetas de ejemplo.</b> Agrega las tuyas con su día de corte y fecha límite de pago; los ejemplos desaparecen solos.</div>
+    <button class="btn primary" type="button" id="addBtn2">Agregar mi primera tarjeta</button>
+  </div>
+
+  <section class="hero" aria-labelledby="heroTitle">
+    <div class="hero-head">
+      <h2 id="heroTitle">¿Con cuál tarjeta compro?</h2>
+      <label for="buyDate">Fecha de compra <input type="date" id="buyDate"></label>
+    </div>
+    <div id="heroPick"></div>
+    <div class="rank" id="rank"></div>
+  </section>
+
+  <section class="section" aria-labelledby="sumTitle">
+    <div class="section-head"><h2 id="sumTitle">Consolidado de crédito</h2><span class="muted" style="font-size:13px">Suma de todas tus tarjetas</span></div>
+    <div class="sum" id="sum"></div>
+  </section>
+
+  <section class="section" aria-labelledby="payTitle">
+    <div class="section-head"><h2 id="payTitle">Próximos pagos</h2><span class="muted" style="font-size:13px">Márcalos como pagados para que dejen de avisarte</span></div>
+    <div class="pay-list" id="payList"></div>
+  </section>
+
+  <section class="section" aria-labelledby="cardsTitle">
+    <div class="section-head"><h2 id="cardsTitle">Tarjetas</h2></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="section" aria-labelledby="calTitle">
+    <div class="section-head"><h2 id="calTitle">Calendario · próximos 60 días</h2></div>
+    <div class="cal" id="cal"></div>
+  </section>
+
+  <div class="tips">
+    <span class="label">Cómo se calcula</span>
+    <span>Lo que compras hasta el día de corte (incluido) entra en ese estado de cuenta y lo pagas en la fecha límite de ese corte. Lo que compras al día siguiente del corte se va al siguiente estado de cuenta: ese es el día con más días para pagar.</span>
+    <span>Algunos bancos registran compras del mismo día de corte en el siguiente periodo. Si quieres ir a la segura, compra a partir del día después del corte. Cuando la fecha límite cae en fin de semana o día inhábil, revisa en tu estado de cuenta si se recorre; esta app te avisa para que pagues antes.</span>
+    <span>Tus tarjetas se guardan solo en este dispositivo y no se envían a ningún servidor. Si cambias de celular o borras los datos del navegador se pierden, así que haz un respaldo de vez en cuando.</span>
+    <span class="toolbar" style="justify-content:flex-start"><button class="btn" type="button" id="backupBtn">Descargar respaldo</button><label class="btn" for="restoreFile" style="display:inline-block">Restaurar respaldo</label><input type="file" id="restoreFile" accept=".json,application/json" hidden></span>
+    <span><a href="privacidad.html" style="color:var(--muted)">Aviso de privacidad</a></span>
+    <span>No guardes aquí números completos de tarjeta, CVV ni NIP. Solo pide los últimos 4 dígitos para identificarlas.</span>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <form class="sheet" id="form" novalidate>
+    <h2 id="formTitle">Nueva tarjeta</h2>
+    <div class="grid2">
+      <div class="field"><label for="f-nombre">Nombre de la tarjeta</label><input type="text" id="f-nombre" placeholder="Ej. Oro, Azul, Platinum" maxlength="40"></div>
+      <div class="field"><label for="f-banco">Banco</label><input type="text" id="f-banco" placeholder="Ej. BBVA, Banamex" maxlength="30"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label for="f-ult">Últimos 4 dígitos <span class="muted">(opcional)</span></label><input type="text" id="f-ult" inputmode="numeric" maxlength="4" placeholder="1234"></div>
+      <div class="field"><label for="f-corte">Día de corte</label><input type="number" id="f-corte" min="1" max="31" placeholder="Ej. 15"><span class="hint">Si el mes no tiene ese día, se usa el último.</span></div>
+    </div>
+    <fieldset class="field">
+      <legend>Fecha límite de pago</legend>
+      <div class="seg">
+        <label><input type="radio" name="modo" value="dia" id="f-modo-dia" checked><span>Día fijo del mes</span></label>
+        <label><input type="radio" name="modo" value="dias" id="f-modo-dias"><span>Días después del corte</span></label>
+      </div>
+      <div class="grid2" style="margin-top:6px">
+        <div class="field" id="wrapDia"><label for="f-limite">Día límite</label><input type="number" id="f-limite" min="1" max="31" placeholder="Ej. 5"></div>
+        <div class="field" id="wrapDias" hidden><label for="f-dias">Días después del corte</label><input type="number" id="f-dias" min="1" max="60" value="20"></div>
+      </div>
+    </fieldset>
+    <div class="grid2">
+      <div class="field"><label for="f-linea">Monto autorizado</label><input type="number" id="f-linea" min="0" step="any" placeholder="$ límite de crédito"></div>
+      <div class="field"><label for="f-saldo">Saldo usado hoy</label><input type="number" id="f-saldo" min="0" step="any" placeholder="$ lo que debes hoy"></div>
+    </div>
+    <div class="field"><label for="f-pni">Pago para no generar intereses <span class="muted">(opcional)</span></label><input type="number" id="f-pni" min="0" step="any" placeholder="$ del último estado de cuenta"></div>
+    <div class="field"><span class="label" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink)">Color</span><div class="colors" id="colors"></div></div>
+    <div class="err" id="formErr" hidden></div>
+    <div id="confirmDel" class="confirm" hidden><span>¿Eliminar esta tarjeta?</span><button type="button" class="btn danger" id="delYes">Sí, eliminar</button><button type="button" class="btn ghost" id="delNo">Cancelar</button></div>
+    <div class="sheet-foot">
+      <button type="button" class="btn danger" id="delBtn" hidden>Eliminar</button>
+      <span style="flex:1"></span>
+      <button type="button" class="btn" id="cancelBtn">Cancelar</button>
+      <button type="submit" class="btn primary" id="saveBtn">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const COLORS=["#0B3D91","#1A73C9","#6A2C91","#B3123A","#D9681A","#C9A227","#1F7A4D","#2B2B2B","#8A8F98"];
+const EXAMPLES=[
+  {id:"ej1",nombre:"Ejemplo Oro",banco:"Banco A",ult:"",corte:5,modo:"dia",limite:25,dias:20,linea:40000,saldo:12500,pni:8200,color:"#C9A227",pagado:""},
+  {id:"ej2",nombre:"Ejemplo Azul",banco:"Banco B",ult:"",corte:15,modo:"dias",limite:5,dias:20,linea:25000,saldo:4300,pni:0,color:"#1A73C9",pagado:""},
+  {id:"ej3",nombre:"Ejemplo Departamental",banco:"Tienda C",ult:"",corte:28,modo:"dia",limite:18,dias:20,linea:15000,saldo:0,pni:0,color:"#B3123A",pagado:""}
+];
+let cards=[], ready=false, store=null, editing=null;
+
+/* ---------- Fechas ---------- */
+const DIM=(y,m)=>new Date(y,m+1,0).getDate();
+const mk=(y,m,day)=>{const f=new Date(y,m,1,12);return new Date(f.getFullYear(),f.getMonth(),Math.min(day,DIM(f.getFullYear(),f.getMonth())),12)};
+const today=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate(),12)};
+const addDays=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r};
+const diff=(a,b)=>Math.round((b-a)/864e5);
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const parseIso=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d,12)};
+const fCorta=new Intl.DateTimeFormat("es-MX",{day:"numeric",month:"short"});
+const fLarga=new Intl.DateTimeFormat("es-MX",{weekday:"short",day:"numeric",month:"short"});
+const fMes=new Intl.DateTimeFormat("es-MX",{month:"long",year:"numeric"});
+const fHoy=new Intl.DateTimeFormat("es-MX",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const money=new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0});
+const corta=d=>fCorta.format(d).replace(".","");
+const larga=d=>fLarga.format(d).replace(/\./g,"");
+const finde=d=>d.getDay()===0||d.getDay()===6;
+
+function cutOnOrAfter(c,d){let x=mk(d.getFullYear(),d.getMonth(),c.corte);if(x<d)x=mk(d.getFullYear(),d.getMonth()+1,c.corte);return x}
+function cutBefore(c,d){let x=mk(d.getFullYear(),d.getMonth(),c.corte);if(x>=d)x=mk(d.getFullYear(),d.getMonth()-1,c.corte);return x}
+function nextCut(c,cut){return mk(cut.getFullYear(),cut.getMonth()+1,c.corte)}
+function dueFor(c,cut){
+  if(c.modo==="dias")return addDays(cut,Number(c.dias)||20);
+  let x=mk(cut.getFullYear(),cut.getMonth(),c.limite);
+  if(x<=cut)x=mk(cut.getFullYear(),cut.getMonth()+1,c.limite);
+  return x;
+}
+/* Compra en fecha d: entra al corte >= d */
+function buyInfo(c,d){const cut=cutOnOrAfter(c,d),due=dueFor(c,cut);return{cut,due,days:diff(d,due)}}
+function payInfo(c,t){
+  const last=cutBefore(c,t),lastDue=dueFor(c,last);
+  const cur=cutOnOrAfter(c,t),curDue=dueFor(c,cur);
+  let p=lastDue>=t?{cut:last,due:lastDue,next:{cut:cur,due:curDue}}:{cut:cur,due:curDue,next:{cut:nextCut(c,cur),due:dueFor(c,nextCut(c,cur))}};
+  const paid=c.pagado===iso(p.due);
+  return{...p,paid,days:diff(t,p.due)};
+}
+function status(days,paid){
+  if(paid)return["ok","Pagado"];
+  if(days<0)return["bad","Vencido"];
+  if(days===0)return["bad","Vence hoy"];
+  if(days<=3)return["bad",`Vence en ${days} día${days>1?"s":""}`];
+  if(days<=7)return["warn",`Vence en ${days} días`];
+  return["neutral",`En ${days} días`];
+}
+
+/* ---------- Render ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const sw=c=>`<span class="swatch" style="background:${esc(c.color||COLORS[0])}"></span>`;
+const title=c=>`${esc(c.nombre||"Tarjeta")}${c.ult?` <span class="muted mono" style="font-weight:400">··${esc(c.ult)}</span>`:""}`;
+
+function list(){return cards.length?cards:EXAMPLES}
+function isExample(){return ready&&cards.length===0}
+
+function render(){
+  const t=today();
+  $("todayLbl").textContent="Hoy es "+fHoy.format(t);
+  $("emptyBanner").hidden=!isExample();
+  const L=list().slice().sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||""));
+
+  // Hero
+  const bd=$("buyDate").value?parseIso($("buyDate").value):t;
+  const ranked=L.map(c=>({c,...buyInfo(c,bd)})).sort((a,b)=>b.days-a.days);
+  const best=ranked[0], max=Math.max(...ranked.map(r=>r.days),1);
+  const esHoy=iso(bd)===iso(t);
+  $("heroPick").innerHTML=best?`<div class="pick">${sw(best.c)}
+    <div><div class="label">${esHoy?"Hoy conviene usar":"El "+larga(bd)+" conviene usar"}</div>
+    <div class="big">${title(best.c)}</div>
+    <div class="muted" style="font-size:14px">${esc(best.c.banco)} · entra al corte del ${corta(best.cut)} · pagas a más tardar el <b style="color:var(--ink)">${larga(best.due)}</b></div></div>
+    <div class="days"><b>${best.days}</b><span class="muted">días para pagar</span></div></div>`:"";
+  $("rank").innerHTML=ranked.map(r=>`<div class="rank-row">${sw(r.c)}
+    <div style="min-width:0"><b>${title(r.c)}</b> <span class="muted">· pagas el ${larga(r.due)}</span></div>
+    <span class="bar" aria-hidden="true"><i style="width:${Math.max(4,r.days/max*100)}%"></i></span>
+    <span class="d">${r.days} d</span></div>`).join("");
+
+  // Consolidado
+  const withL=L.filter(c=>Number(c.linea)>0);
+  const tot=L.reduce((a,c)=>{const l=Number(c.linea)||0,u=Number(c.saldo)||0;a.l+=l;a.u+=u;a.p+=Number(c.pni)||0;a.d+=Math.max(0,l-u);return a},{l:0,u:0,p:0,d:0});
+  const util=tot.l?tot.u/tot.l*100:0;
+  const uk=util>70?"bad":util>30?"warn":"ok";
+  $("sum").innerHTML=!withL.length?`<p class="muted" style="margin:0">Captura el monto autorizado de cada tarjeta (botón Editar) para ver aquí el total de tu crédito.</p>`:`
+    <div class="kpis">
+      <div class="kpi main"><span class="label">Autorizado total</span><b>${money.format(tot.l)}</b></div>
+      <div class="kpi"><span class="label">Usado</span><b>${money.format(tot.u)}</b></div>
+      <div class="kpi"><span class="label">Disponible</span><b>${money.format(tot.d)}</b></div>
+      <div class="kpi"><span class="label">Utilización</span><b>${Math.round(util)}%</b><span class="chip ${uk}" style="justify-self:start">${util>70?"Alta":util>30?"Media":"Sana"}</span></div>
+    </div>
+    <div style="display:grid;gap:6px"><span class="label">Monto autorizado por tarjeta</span>
+      <div class="stack" role="img" aria-label="Participación de cada tarjeta en el crédito total">${withL.map(c=>`<i title="${esc(c.nombre)}: ${money.format(c.linea)}" style="flex:${c.linea};background:${esc(c.color)}"></i>`).join("")}</div></div>
+    <div class="tscroll"><table class="sum-table">
+      <thead><tr><th>Tarjeta</th><th>Autorizado</th><th>Usado</th><th>Disponible</th><th>Uso</th><th>Pago sin intereses</th></tr></thead>
+      <tbody>${L.slice().sort((a,b)=>(b.linea||0)-(a.linea||0)).map(c=>{const l=Number(c.linea)||0,u=Number(c.saldo)||0;return `<tr>
+        <td><span class="ccell">${sw(c)}<span>${title(c)}</span></span></td>
+        <td>${l?money.format(l):"—"}</td><td>${money.format(u)}</td><td>${l?money.format(Math.max(0,l-u)):"—"}</td>
+        <td>${l?Math.round(u/l*100)+"%":"—"}</td><td>${c.pni?money.format(c.pni):"—"}</td></tr>`}).join("")}</tbody>
+      <tfoot><tr><td>Total</td><td>${money.format(tot.l)}</td><td>${money.format(tot.u)}</td><td>${money.format(tot.d)}</td><td>${Math.round(util)}%</td><td>${money.format(tot.p)}</td></tr></tfoot>
+    </table></div>`;
+
+  // Pagos
+  const pays=L.map(c=>({c,...payInfo(c,t)})).sort((a,b)=>(a.paid-b.paid)||(a.due-b.due));
+  $("payList").innerHTML=pays.map(p=>{
+    const [k,txt]=status(p.days,p.paid);
+    const amt=p.c.pni?` · ${money.format(p.c.pni)} para no generar intereses`:"";
+    const fw=!p.paid&&finde(p.due)?" · cae en fin de semana, paga antes":"";
+    return `<div class="pay">${sw(p.c)}
+      <div style="min-width:0"><div class="name">${title(p.c)}</div>
+      <div class="sub">Corte del ${corta(p.cut)}${amt}${fw}${p.paid?` · siguiente pago ${larga(p.next.due)}`:""}</div></div>
+      <span class="chip ${k}">${txt}</span>
+      <div class="when"><b>${larga(p.due)}</b><br>${isExample()?"":`<button class="btn ghost" type="button" data-pay="${esc(p.c.id)}" data-due="${iso(p.due)}">${p.paid?"Deshacer":"Marcar pagado"}</button>`}</div></div>`;
+  }).join("");
+
+  // Tarjetas
+  $("cards").innerHTML=L.map(c=>{
+    const cur=cutOnOrAfter(c,t),curDue=dueFor(c,cur),nx=nextCut(c,cur),nxDue=dueFor(c,nx),after=addDays(cur,1);
+    const pagoTxt=c.modo==="dias"?`${c.dias} días después del corte`:`Día ${c.limite} de cada mes`;
+    let usage="";
+    if(Number(c.linea)>0){const s=Number(c.saldo)||0,pct=Math.min(100,s/c.linea*100);
+      usage=`<div class="usage"><div style="display:flex;justify-content:space-between"><span class="muted">Usado ${money.format(s)} de ${money.format(c.linea)} autorizados</span><span class="mono">${Math.round(pct)}%</span></div>
+      <span class="bar"><i style="width:${pct}%;background:${pct>70?"var(--bad)":pct>30?"var(--warn)":"var(--accent)"}"></i></span>
+      <span class="muted">Disponible ${money.format(Math.max(0,c.linea-s))}</span></div>`}
+    return `<article class="card${isExample()?" example":""}">
+      <div class="card-head">${sw(c)}<div class="t"><b>${title(c)}</b><span>${esc(c.banco)}${isExample()?" · ejemplo":""}</span></div></div>
+      <div class="dates"><div><span class="label">Corte</span><b>Día ${c.corte}</b></div><div><span class="label">Límite de pago</span><b style="font-family:var(--f-body);font-size:13.5px;font-weight:600">${pagoTxt}</b></div></div>
+      <div class="window">
+        <div class="row"><span class="dot b"></span><span>Compras hasta el <b>${larga(cur)}</b> → pagas el <b>${larga(curDue)}</b></span></div>
+        <div class="row"><span class="dot a"></span><span>Desde el <b>${larga(after)}</b> → pagas hasta el <b>${larga(nxDue)}</b> <span class="muted">(${diff(after,nxDue)} días, el mejor día)</span></span></div>
+      </div>
+      ${usage}
+      <div class="card-foot"><span class="muted" style="font-size:13px">Próximo mejor día: <b style="color:var(--ink)">${larga(after)}</b></span>
+      ${isExample()?"":`<button class="btn" type="button" data-edit="${esc(c.id)}">Editar</button>`}</div>
+    </article>`}).join("");
+
+  // Calendario
+  const end=addDays(t,60),ev=[];
+  for(const c of L){
+    let cut=cutBefore(c,t);
+    for(let i=0;i<4;i++){
+      if(cut>=t&&cut<=end)ev.push({d:cut,type:"corte",c});
+      const du=dueFor(c,cut);
+      if(du>=t&&du<=end)ev.push({d:du,type:"pago",c,paid:c.pagado===iso(du)});
+      cut=nextCut(c,cut);
+    }
+  }
+  ev.sort((a,b)=>a.d-b.d||(a.type==="pago"?-1:1));
+  let lastM="",html="";
+  for(const e of ev){
+    const m=fMes.format(e.d);
+    if(m!==lastM){html+=`<div class="month-sep">${m[0].toUpperCase()+m.slice(1)}</div>`;lastM=m}
+    const dd=diff(t,e.d);
+    html+=`<div class="cal-row"><span class="dt">${larga(e.d)}</span><span class="tag ${e.type}">${e.type==="pago"?"Pago":"Corte"}</span>
+      <span style="min-width:0">${title(e.c)}${e.paid?' <span class="chip ok" style="margin-left:6px">Pagado</span>':""}</span>
+      <span class="muted mono" style="font-size:13px">${dd===0?"hoy":dd===1?"mañana":"en "+dd+" d"}</span></div>`;
+  }
+  $("cal").innerHTML=html||'<p class="muted">Sin eventos.</p>';
+}
+
+/* ---------- Formulario ---------- */
+let pickedColor=COLORS[0];
+function drawColors(){$("colors").innerHTML=COLORS.map(c=>`<button type="button" style="background:${c}" aria-label="Color ${c}" aria-pressed="${c===pickedColor}" data-color="${c}"></button>`).join("")}
+function syncModo(){const d=$("f-modo-dias").checked;$("wrapDias").hidden=!d;$("wrapDia").hidden=d}
+function openForm(c){
+  editing=c||null;
+  $("formTitle").textContent=c?"Editar tarjeta":"Nueva tarjeta";
+  $("f-nombre").value=c?.nombre||"";$("f-banco").value=c?.banco||"";$("f-ult").value=c?.ult||"";
+  $("f-corte").value=c?.corte||"";$("f-limite").value=c?.limite||"";$("f-dias").value=c?.dias||20;
+  $("f-linea").value=c?.linea||"";$("f-saldo").value=c?.saldo||"";$("f-pni").value=c?.pni||"";
+  (c?.modo==="dias"?$("f-modo-dias"):$("f-modo-dia")).checked=true;syncModo();
+  pickedColor=c?.color||COLORS[cards.length%COLORS.length];drawColors();
+  $("delBtn").hidden=!c;$("confirmDel").hidden=true;$("formErr").hidden=true;
+  $("modal").hidden=false;setTimeout(()=>$("f-nombre").focus(),30);
+}
+function closeForm(){$("modal").hidden=true;editing=null}
+function num(id){const v=$(id).value.trim();return v===""?0:Number(v)}
+
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const err=m=>{$("formErr").textContent=m;$("formErr").hidden=false};
+  const nombre=$("f-nombre").value.trim(),corte=parseInt($("f-corte").value,10);
+  const modo=$("f-modo-dias").checked?"dias":"dia",limite=parseInt($("f-limite").value,10),dias=parseInt($("f-dias").value,10);
+  const ult=$("f-ult").value.replace(/\D/g,"").slice(0,4);
+  if(!nombre)return err("Escribe un nombre para la tarjeta.");
+  if(!(corte>=1&&corte<=31))return err("El día de corte debe estar entre 1 y 31.");
+  if(modo==="dia"&&!(limite>=1&&limite<=31))return err("El día límite de pago debe estar entre 1 y 31.");
+  if(modo==="dias"&&!(dias>=1&&dias<=60))return err("Los días después del corte deben estar entre 1 y 60.");
+  const data={nombre,banco:$("f-banco").value.trim(),ult,corte,modo,limite:modo==="dia"?limite:0,dias:modo==="dias"?dias:20,
+    linea:num("f-linea"),saldo:num("f-saldo"),pni:num("f-pni"),color:pickedColor,pagado:editing?.pagado||""};
+  const id=editing?.id||("t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+  $("saveBtn").disabled=true;
+  try{await store.save(id,data);closeForm()}catch(x){err("No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.")}
+  finally{$("saveBtn").disabled=false}
+});
+$("colors").addEventListener("click",e=>{const b=e.target.closest("[data-color]");if(b){pickedColor=b.dataset.color;drawColors()}});
+$("f-modo-dia").addEventListener("change",syncModo);$("f-modo-dias").addEventListener("change",syncModo);
+$("cancelBtn").onclick=closeForm;
+$("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeForm()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("modal").hidden)closeForm()});
+$("delBtn").onclick=()=>{$("confirmDel").hidden=false};
+$("delNo").onclick=()=>{$("confirmDel").hidden=true};
+$("delYes").onclick=async()=>{try{await store.remove(editing.id);closeForm()}catch(x){$("formErr").textContent="No se pudo eliminar.";$("formErr").hidden=false}};
+$("addBtn").onclick=()=>openForm();$("addBtn2").onclick=()=>openForm();
+document.addEventListener("click",async e=>{
+  const ed=e.target.closest("[data-edit]");if(ed){openForm(cards.find(c=>c.id===ed.dataset.edit));return}
+  const pb=e.target.closest("[data-pay]");if(pb){const c=cards.find(x=>x.id===pb.dataset.pay);if(!c)return;
+    const val=c.pagado===pb.dataset.due?"":pb.dataset.due;pb.disabled=true;
+    try{await store.save(c.id,{...c,pagado:val})}catch(x){pb.disabled=false}}
+});
+$("buyDate").addEventListener("change",render);
+$("buyDate").value=iso(today());
+
+/* ---------- Almacenamiento local ---------- */
+const KEY="mis-tarjetas-v1";
+function readAll(){try{const a=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return[]}}
+function writeAll(a){localStorage.setItem(KEY,JSON.stringify(a))}
+store={
+  save:async(id,d)=>{const a=readAll().filter(c=>c.id!==id);a.push({id,...d});writeAll(a);cards=a;render()},
+  remove:async id=>{const a=readAll().filter(c=>c.id!==id);writeAll(a);cards=a;render()}
+};
+function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3200)}
+
+/* ---------- Archivos (calendario y respaldo) ---------- */
+async function deliver(name,text,type){
+  const blob=new Blob([text],{type});
+  try{
+    const file=new File([blob],name,{type});
+    if(/iPhone|iPad|Android/i.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}
+  }catch(e){if(e&&e.name==="AbortError")return}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
+}
+const icsEsc=s=>String(s||"").replace(/\\/g,"\\\\").replace(/[,;]/g,m=>"\\"+m).replace(/\n/g,"\\n");
+const icsDate=d=>iso(d).replace(/-/g,"");
+function fold(line){const out=[];while(line.length>60){out.push(line.slice(0,60));line=" "+line.slice(60)}out.push(line);return out.join("\r\n")}
+function buildIcs(){
+  const t=today(),now=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Mis Tarjetas//ES","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Pagos de tarjetas"];
+  for(const c of cards){
+    const nom=(c.banco?c.banco+" ":"")+(c.nombre||"Tarjeta")+(c.ult?" ··"+c.ult:"");
+    let cut=cutBefore(c,t);
+    for(let i=0;i<13;i++){
+      const due=dueFor(c,cut);
+      if(due>=t){
+        const desc=`Corte del ${larga(cut)}. Compras hasta esa fecha se pagan hoy.`+(c.pni?` Último pago para no generar intereses capturado: ${money.format(c.pni)}.`:"")+(finde(due)?" Cae en fin de semana: paga antes.":"");
+        L.push("BEGIN:VEVENT","UID:pago-"+c.id+"-"+icsDate(due)+"@mistarjetas","DTSTAMP:"+now,
+          "DTSTART;VALUE=DATE:"+icsDate(due),"DTEND;VALUE=DATE:"+icsDate(addDays(due,1)),
+          "SUMMARY:"+icsEsc("Pagar "+nom),"DESCRIPTION:"+icsEsc(desc),"TRANSP:TRANSPARENT",
+          "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc("En 3 días vence "+nom),"TRIGGER:-P2DT15H","END:VALARM",
+          "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc("Mañana vence "+nom),"TRIGGER:-PT15H","END:VALARM",
+          "END:VEVENT");
+      }
+      if(cut>=t){
+        L.push("BEGIN:VEVENT","UID:corte-"+c.id+"-"+icsDate(cut)+"@mistarjetas","DTSTAMP:"+now,
+          "DTSTART;VALUE=DATE:"+icsDate(cut),"DTEND;VALUE=DATE:"+icsDate(addDays(cut,1)),
+          "SUMMARY:"+icsEsc("Corte "+nom),"DESCRIPTION:"+icsEsc("Desde mañana es el mejor día para comprar con esta tarjeta."),"TRANSP:TRANSPARENT","END:VEVENT");
+      }
+      cut=nextCut(c,cut);
+    }
+  }
+  L.push("END:VCALENDAR");
+  return L.map(fold).join("\r\n")+"\r\n";
+}
+$("icsBtn").onclick=()=>{
+  if(!cards.length){toast("Primero agrega tus tarjetas.");return}
+  deliver("pagos-tarjetas.ics",buildIcs(),"text/calendar");
+};
+$("backupBtn").onclick=()=>{
+  if(!cards.length){toast("Todavía no hay tarjetas que respaldar.");return}
+  deliver("respaldo-mis-tarjetas-"+iso(today())+".json",JSON.stringify({app:"mis-tarjetas",version:1,fecha:iso(today()),tarjetas:cards},null,2),"application/json");
+};
+$("restoreFile").addEventListener("change",async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{
+    const j=JSON.parse(await f.text()),arr=Array.isArray(j)?j:j.tarjetas;
+    if(!Array.isArray(arr)||!arr.every(c=>c&&c.id&&c.corte))throw 0;
+    const ok=arr.map(c=>({...c,ult:String(c.ult||"").replace(/\D/g,"").slice(0,4)}));
+    writeAll(ok);cards=ok;render();toast(`Se restauraron ${ok.length} tarjeta${ok.length===1?"":"s"}.`);
+  }catch(x){toast("Ese archivo no es un respaldo de Mis Tarjetas.")}
+});
+
+/* ---------- Instalación ---------- */
+let deferred=null;
+const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;if(!standalone)$("installBox").hidden=false});
+$("installBtn").onclick=async()=>{
+  if(deferred){deferred.prompt();await deferred.userChoice;deferred=null;$("installBox").hidden=true}
+  else $("installBox").hidden=true;
+};
+if(!standalone&&/iPhone|iPad/i.test(navigator.userAgent)){
+  $("installTxt").textContent="Para instalarla en tu iPhone: toca Compartir y luego “Agregar a pantalla de inicio”.";
+  $("installBtn").textContent="Entendido";$("installBox").hidden=false;
+}
+window.addEventListener("appinstalled",()=>{$("installBox").hidden=true});
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+
+cards=readAll();ready=true;render();
+setInterval(()=>{if(document.visibilityState==="visible")render()},60*60*1000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")render()});
+</script>
+</body>
+</html>
