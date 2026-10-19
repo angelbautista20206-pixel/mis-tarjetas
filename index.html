@@ -209,6 +209,24 @@ h2{font-weight:700;letter-spacing:-.02em}
 .sheet{box-shadow:0 20px 50px rgba(11,21,48,.18)}
 input[type=text],input[type=number],input[type=date],.field input{background:var(--surface)!important;border-color:var(--line)!important}
 input:focus{border-color:var(--accent)!important;outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.reco{background:var(--accent);color:#fff;border-radius:20px;padding:22px 24px;display:grid;gap:14px;box-shadow:0 14px 34px rgba(37,99,235,.25)}
+.reco:empty{display:none}
+.reco .label{color:#DCE7FF}
+.reco-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.reco-date{font-size:13px;color:#DCE7FF}
+.reco-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center}
+.reco-main .swatch{width:46px;height:30px;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+.reco-name b{display:block;font-size:clamp(22px,4.5vw,30px);font-weight:800;letter-spacing:-.02em;line-height:1.15;overflow-wrap:anywhere}
+.reco-name b .muted{color:#DCE7FF!important}
+.reco-name span{font-size:14px;color:#DCE7FF}
+.reco-days{text-align:right}
+.reco-days b{display:block;font-size:clamp(34px,7vw,48px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.reco-days span{font-size:13px;color:#DCE7FF}
+.reco-why{margin:0;font-size:15px;color:#F2F6FF}
+.reco-foot{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:#E6EDFF;border-top:1px solid rgba(255,255,255,.25);padding-top:12px}
+.reco-foot .muted{color:#C9D8FF}
+.reco-foot b .muted{color:#C9D8FF!important}
+@media(max-width:560px){.reco{padding:18px}.reco-main{grid-template-columns:auto minmax(0,1fr)}.reco-days{grid-column:1/-1;text-align:left;display:flex;gap:8px;align-items:baseline}}
 </style>
 
 </head>
@@ -238,6 +256,9 @@ input:focus{border-color:var(--accent)!important;outline:none;box-shadow:0 0 0 3
     <div><b>Estás viendo tarjetas de ejemplo.</b> Agrega las tuyas con su día de corte y fecha límite de pago; los ejemplos desaparecen solos.</div>
     <button class="btn primary" type="button" id="addBtn2">Agregar mi primera tarjeta</button>
   </div>
+
+  <section class="reco" id="reco" aria-labelledby="recoTitle" aria-live="polite"></section>
+
 
   <section class="section" aria-labelledby="sumTitle">
     <div class="section-head"><h2 id="sumTitle">Consolidado de crédito</h2><span class="muted" style="font-size:13px">Suma de todas tus tarjetas</span></div>
@@ -355,6 +376,27 @@ function dueFor(c,cut){
   return x;
 }
 /* Compra en fecha d: entra al corte >= d */
+function disponible(c){const l=Number(c.linea)||0;return l>0?l-(Number(c.saldo)||0):null}
+function usable(c){const l=Number(c.linea)||0;if(!l)return true;const d=disponible(c);return d>0&&(Number(c.saldo)||0)/l<0.9}
+function bestFor(L,d){
+  const pool=L.filter(usable),list=(pool.length?pool:L).map(c=>({c,...buyInfo(c,d)}));
+  list.sort((a,b)=>b.days-a.days||((disponible(b.c)??0)-(disponible(a.c)??0)));
+  return{list,excluded:L.length-pool.length};
+}
+function recoHtml(L,t){
+  if(!L.length)return"";
+  const {list,excluded}=bestFor(L,t),best=list[0],second=list[1];
+  let cambia=null;
+  for(let i=1;i<=62;i++){const d=addDays(t,i),b=bestFor(L,d).list[0];if(b&&b.c.id!==best.c.id){cambia={d,c:b.c};break}}
+  const disp=disponible(best.c);
+  return `<div class="reco-head"><span class="label" id="recoTitle">Te recomiendo pagar con</span><span class="reco-date">Hoy, ${larga(t)}</span></div>
+  <div class="reco-main">${sw(best.c)}
+    <div class="reco-name"><b>${title(best.c)}</b><span>${esc(best.c.banco)}${disp!=null?` · disponible ${money.format(disp)}`:""}</span></div>
+    <div class="reco-days"><b>${best.days}</b><span>días para pagar</span></div>
+  </div>
+  <p class="reco-why">Si compras hoy, el cargo entra al corte del <b>${larga(best.cut)}</b> y lo pagas hasta el <b>${larga(best.due)}</b>.</p>
+  <div class="reco-foot">${second?`<span>Segunda opción: <b>${title(second.c)}</b> · ${second.days} días</span>`:""}${cambia?`<span>A partir del <b>${larga(cambia.d)}</b> conviene <b>${title(cambia.c)}</b></span>`:""}${excluded?`<span class="muted">No consideré ${excluded} tarjeta${excluded>1?"s":""} con poco crédito disponible.</span>`:""}</div>`;
+}
 function buyInfo(c,d){const cut=cutOnOrAfter(c,d),due=dueFor(c,cut);return{cut,due,days:diff(d,due)}}
 function payInfo(c,t){
   // Mantener el primer periodo sin confirmar, aunque venza o cambie el mes.
@@ -392,6 +434,9 @@ function render(){
   $("todayLbl").textContent="Hoy es "+fHoy.format(t);
   $("emptyBanner").hidden=!isExample();
   const L=list().slice().sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||""));
+
+  // Te recomiendo pagar con (hoy)
+  $("reco").innerHTML=recoHtml(L,t);
 
   // Hero
   const bd=$("buyDate").value?parseIso($("buyDate").value):t;
