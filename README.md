@@ -26,6 +26,15 @@ Se mantiene la clave `mis-tarjetas-v1` del almacenamiento. La primera lectura v�
 - Marcar pagado registra una confirmación manual; no realiza transacciones ni cambia saldos.
 - La comparación ordena por días hasta la fecha estimada; no es una evaluación de tasas, comisiones o capacidad de pago.
 
+## Plan de pagos
+
+`plan.html`, enlazada desde el inicio. Con el saldo, la tasa anual, el pago mínimo y el día límite de cada tarjeta, más un presupuesto mensual total, calcula cuánto pagar a cada tarjeta este mes, en qué mes se liquida todo y cuánto se paga de intereses.
+
+- Estrategias: avalancha (el excedente va a la tasa más alta) y bola de nieve (al saldo menor). Muestra la diferencia de intereses entre ambas y contra pagar solo mínimos.
+- Interés mensual = saldo × tasa anual ÷ 12, con IVA del 16% opcional (activado por defecto). No considera compras nuevas, comisiones ni cambios de tasa.
+- “Traer de Mis tarjetas” copia nombre, saldo, color y día límite de las tarjetas guardadas (`mis-tarjetas-v1`); no las modifica. La tasa y el mínimo se capturan a mano.
+- Datos en su propia clave `mis-tarjetas-plan-v1`, solo en el navegador.
+
 ## Calendario
 
 Exportación ICS estática. No se sincroniza ni actualiza sola. Los importes son referencias capturadas al exportar. Cambiar fechas o volver a importar puede duplicar eventos según el calendario: revisar y eliminar eventos anteriores cuando corresponda. La entrega de alertas depende de la aplicación de calendario y sus permisos.
@@ -33,6 +42,8 @@ Exportación ICS estática. No se sincroniza ni actualiza sola. Los importes son
 ## Verificación
 
 `node tests/regression.cjs`
+
+`node tests/plan.cjs` (cálculo del plan de pagos)
 
 Pruebas de lógica de pagos, años bisiestos, montos, validación de respaldos, persistencia, ICS UTF-8 y caché por página mediante entorno simulado. No requieren dependencias.
 

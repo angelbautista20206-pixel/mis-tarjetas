@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="description" content="Arma un plan para pagar tus tarjetas de crédito: cuánto pagar a cada una y cuándo terminas.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/lba-logo.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/lba-logo.png">
+<title>Plan de pagos · Mis Tarjetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#F5F8FC; --surface:#FFFFFF; --sunk:#F1F4F9; --ink:#0B1530; --muted:#4A5568; --line:#E3E8F0;
+  --accent:#2563EB; --accent-hover:#1D4ED8; --accent-soft:#EEF3FF; --accent-line:#D6E2FF; --navy:#0B1F3A;
+  --ok:#15803D; --ok-soft:#E6F6EC; --warn:#A16207; --warn-soft:#FEF4DC; --bad:#C2261B; --bad-soft:#FDECEA;
+  --f:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#08111F; --surface:#0F1B2E; --sunk:#16243A; --ink:#E8EEF8; --muted:#9AA8BE; --line:#22324B;
+  --accent:#5B8DEF; --accent-hover:#7AA3F3; --accent-soft:#14254A; --accent-line:#24406F; --navy:#E8EEF8;
+  --ok:#4ADE80; --ok-soft:#10301F; --warn:#FBBF24; --warn-soft:#33270B; --bad:#F87171; --bad-soft:#3A1717;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.5;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:760px;margin:0 auto;display:grid;gap:24px}
+h1,h2{margin:0;letter-spacing:-.015em;text-wrap:balance}
+h1{font-size:clamp(28px,6vw,36px);font-weight:750}
+h2{font-size:19px;font-weight:650}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.label{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+[hidden]{display:none!important}
+
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:10px;align-items:center;text-decoration:none;color:var(--ink)}
+.brand img{border-radius:10px;background:#fff}
+.brand strong{display:block;font-size:15px;letter-spacing:.06em}
+.brand small{display:block;font-size:9px;letter-spacing:.12em;color:var(--muted)}
+.back{font-size:14px;font-weight:600;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:6px;min-height:44px}
+.intro{margin:6px 0 0;color:var(--muted)}
+
+.btn{min-height:44px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 16px;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn.soft{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent)}
+.btn.dash{border-style:dashed;color:var(--accent);background:transparent;width:100%}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 4px 16px #0b1f3a08}
+.section{display:grid;gap:12px}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+
+/* Resultado principal */
+.hero{background:linear-gradient(140deg,#0B1F3A 0%,#16336A 60%,#2563EB 130%);color:#fff;border:0;padding:24px;display:grid;gap:18px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,#ffffff1f,transparent 70%)}
+.hero .label{color:#BFD2FF}
+.hero .big{font-size:clamp(34px,9vw,52px);font-weight:800;letter-spacing:-.035em;line-height:1}
+.hero .sub{color:#D6E2FF;font-size:14.5px}
+.hero-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.hero-kpis div{background:#ffffff14;border:1px solid #ffffff1f;border-radius:14px;padding:10px 12px;min-width:0}
+.hero-kpis b{display:block;font-size:clamp(16px,4.2vw,21px);font-weight:700;letter-spacing:-.02em;overflow-wrap:anywhere}
+.hero-kpis span{font-size:11.5px;color:#BFD2FF}
+.progress{height:8px;border-radius:99px;background:#ffffff22;overflow:hidden}
+.progress i{display:block;height:100%;background:#fff;border-radius:99px}
+.hero.empty{background:var(--surface);color:var(--ink);border:1px dashed var(--accent-line)}
+.hero.empty .label{color:var(--accent)}
+.hero.empty::after{display:none}
+
+.alert{border-radius:14px;padding:14px 16px;font-size:14.5px}
+.alert.bad{background:var(--bad-soft);color:var(--bad)}
+.alert.ok{background:var(--ok-soft);color:var(--ok)}
+.alert.info{background:var(--accent-soft);color:var(--ink)}
+
+/* Pagos del mes */
+.pays{padding:4px 0}
+.pay{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+.pay:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:4px}
+.pay .n{font-weight:650;overflow-wrap:anywhere}
+.pay .d{font-size:13px;color:var(--muted)}
+.pay .a{font-size:19px;font-weight:750;text-align:right;letter-spacing:-.02em}
+.pay .a small{display:block;font-size:11.5px;font-weight:500;color:var(--muted);letter-spacing:0}
+.chip{display:inline-flex;align-items:center;border-radius:99px;padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:6px;vertical-align:2px;background:var(--accent-soft);color:var(--accent)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.pay-total{display:flex;justify-content:space-between;padding:14px 20px;background:var(--sunk);font-weight:650;border-radius:0 0 20px 20px}
+
+/* Deudas */
+.debts{display:grid;gap:12px}
+.debt{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:12px;border-left:5px solid var(--c,var(--accent))}
+.debt-head{display:flex;gap:10px;align-items:center}
+.debt-head input{font-weight:650;font-size:16px;border:0;background:transparent;padding:6px 0;flex:1;min-width:0}
+.debt-head input:focus{outline:none;border-bottom:2px solid var(--accent)}
+.x{border:0;background:var(--sunk);color:var(--muted);width:36px;height:36px;border-radius:10px;font-size:18px;flex:none}
+.x:hover{color:var(--bad)}
+.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:500}
+.field input{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--sunk);font-size:16px;font-variant-numeric:tabular-nums}
+.field input:focus{outline:2px solid var(--accent);border-color:transparent;background:var(--surface)}
+.field.miss input{border-color:var(--warn);background:var(--warn-soft)}
+.debt-foot{font-size:12.5px;color:var(--muted)}
+.row-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Presupuesto */
+.budget-row{display:flex;gap:12px;align-items:center}
+.money{position:relative;flex:1}
+.money span{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:600}
+.money input{width:100%;min-height:54px;padding:12px 14px 12px 28px;border:1px solid var(--line);border-radius:14px;background:var(--sunk);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.money input:focus{outline:2px solid var(--accent);border-color:transparent;background:var(--surface)}
+input[type=range]{width:100%;accent-color:var(--accent);margin:14px 0 2px}
+.range-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--sunk);padding:5px;border-radius:14px}
+.seg button{border:0;background:transparent;border-radius:10px;padding:10px 8px;text-align:left;color:var(--muted);min-height:44px}
+.seg button b{display:block;font-size:14.5px;color:var(--ink)}
+.seg button span{font-size:12px}
+.seg button.on{background:var(--surface);box-shadow:0 1px 4px #0b1f3a1f}
+.seg button.on b{color:var(--accent)}
+.toggle{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--muted);min-height:44px}
+.toggle input{width:20px;height:20px;accent-color:var(--accent)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+
+/* Gráfica y orden */
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+svg{display:block;width:100%;height:auto}
+.steps{list-style:none;margin:0;padding:0;display:grid}
+.steps li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.steps li:last-child{border-bottom:0}
+.steps .k{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;color:#fff}
+.steps .w{font-weight:650;text-align:right}
+.steps .w small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+
+details summary{cursor:pointer;font-weight:650;color:var(--accent);min-height:44px;display:flex;align-items:center}
+.scroll{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+footer{font-size:12.5px;color:var(--muted);display:grid;gap:6px}
+footer a{color:var(--muted)}
+
+@media(max-width:560px){
+  .fields{grid-template-columns:1fr 1fr}
+  .panel{padding:16px}
+  .pay{padding:12px 16px}.pay-total{padding:12px 16px}
+  .hero{padding:20px}
+  .hero-kpis{grid-template-columns:1fr 1fr}.hero-kpis div:last-child{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandbar">
+    <a class="brand" href="https://lbaautomate.com" aria-label="LBA Automate, sitio web"><img src="assets/lba-logo.png" width="44" height="44" alt=""><span><strong>LBA AUTOMATE</strong><small>LEAN BUSINESS AUTOMATION</small></span></a>
+    <a class="back" href="./">← Mis tarjetas</a>
+  </div>
+
+  <header>
+    <h1>Plan de pagos</h1>
+    <p class="intro">Dime cuánto debes y cuánto puedes pagar al mes. Yo te digo cuánto darle a cada tarjeta y cuándo terminas.</p>
+  </header>
+
+  <section id="hero" class="panel hero empty" aria-live="polite"></section>
+
+  <section class="section" id="paySec" hidden aria-labelledby="payTitle">
+    <div class="section-head"><h2 id="payTitle">Este mes paga</h2><span class="muted" style="font-size:13px" id="payMonth"></span></div>
+    <div class="panel" style="padding:0"><div class="pays" id="pays"></div></div>
+  </section>
+
+  <section class="section" aria-labelledby="debtTitle">
+    <div class="section-head"><h2 id="debtTitle">Tus deudas</h2><span class="muted" style="font-size:13px" id="debtTotal"></span></div>
+    <div class="debts" id="debts"></div>
+    <div class="row-btns" id="addRow">
+      <button class="btn dash" id="addBtn" type="button">+ Agregar tarjeta</button>
+      <button class="btn soft" id="importBtn" type="button" hidden></button>
+    </div>
+    <p class="hint">La tasa anual viene en tu estado de cuenta como “tasa de interés ordinaria anual”. No captures número de tarjeta, CVV ni NIP.</p>
+  </section>
+
+  <section class="section" aria-labelledby="budTitle">
+    <h2 id="budTitle">¿Cuánto puedes pagar al mes?</h2>
+    <div class="panel" style="display:grid;gap:18px">
+      <div>
+        <div class="budget-row"><div class="money"><span>$</span><input id="budget" type="number" inputmode="decimal" min="0" placeholder="0" aria-label="Presupuesto mensual en pesos"></div></div>
+        <input type="range" id="range" min="0" max="10000" step="100" aria-label="Ajustar presupuesto" hidden>
+        <div class="range-lbl" id="rangeLbl" hidden><span id="rMin"></span><span id="rMax"></span></div>
+        <p class="hint" id="minHint" style="margin-top:8px"></p>
+      </div>
+      <div>
+        <div class="label" style="margin-bottom:8px">¿A qué tarjeta va el dinero extra?</div>
+        <div class="seg" id="strat">
+          <button type="button" data-v="avalancha"><b>Avalancha</b><span>A la tasa más alta. Pagas menos intereses.</span></button>
+          <button type="button" data-v="bola"><b>Bola de nieve</b><span>A la deuda más chica. Liquidas antes.</span></button>
+        </div>
+        <p class="hint" id="stratCmp" style="margin-top:8px"></p>
+      </div>
+      <label class="toggle"><input type="checkbox" id="iva"> Sumar IVA (16%) a los intereses, como lo cobran los bancos en México</label>
+    </div>
+  </section>
+
+  <section class="section" id="chartSec" hidden aria-labelledby="chartTitle">
+    <h2 id="chartTitle">Así baja tu deuda</h2>
+    <div class="panel"><div id="chart"></div><div class="legend" id="legend"></div></div>
+  </section>
+
+  <section class="section" id="orderSec" hidden aria-labelledby="orderTitle">
+    <h2 id="orderTitle">Orden en que se liquidan</h2>
+    <div class="panel" style="padding:4px 20px"><ol class="steps" id="steps"></ol></div>
+    <details class="panel" style="padding:8px 20px"><summary>Ver el plan completo mes por mes</summary><div class="scroll" id="table"></div></details>
+  </section>
+
+  <footer>
+    <span>Estimación con tasa anual ÷ 12 sobre el saldo, sin compras nuevas ni comisiones. Actualiza tus saldos cada mes con tu estado de cuenta para recalcular.</span>
+    <span>Tus datos se guardan solo en este dispositivo. <a href="privacidad.html">Aviso de privacidad</a></span>
+  </footer>
+</div>
+
+<script>
+"use strict";
+const PLAN_KEY = "mis-tarjetas-plan-v1", CARDS_KEY = "mis-tarjetas-v1";
+const COLORS = ["#2563EB","#0EA5A4","#F59E0B","#DB2777","#7C3AED","#16A34A","#EA580C","#0B1F3A"];
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const MESES_L = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const money = n => "$" + Math.round(n).toLocaleString("es-MX");
+const num = v => { const n = parseFloat(String(v ?? "").replace(/,/g, "")); return Number.isFinite(n) && n >= 0 ? n : 0; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+/* ---------- Cálculo (puro, probado en tests/plan.cjs) ---------- */
+function simulate(debts, budget, strat, iva, onlyMin){
+  const f = iva ? 1.16 : 1;
+  const cs = debts.map(d => ({ id:d.id, rate:d.rate, min:d.min, b:d.bal, paidOff:null }));
+  const months = []; let totalInt = 0;
+  for(let m = 0; m < 600; m++){
+    if(cs.every(c => c.b <= 0.005)) break;
+    const row = { pays:{}, bals:{}, int:0, bal:0 };
+    for(const c of cs){ if(c.b > 0){ const i = c.b * (c.rate / 1200) * f; c.b += i; row.int += i; totalInt += i; } }
+    let left = budget;
+    for(const c of cs){ const p = Math.min(c.min, c.b); c.b -= p; left -= p; row.pays[c.id] = p; }
+    if(!onlyMin){
+      const order = cs.filter(c => c.b > 0.005).sort((a, b) => strat === "avalancha" ? (b.rate - a.rate) || (a.b - b.b) : (a.b - b.b) || (b.rate - a.rate));
+      for(const c of order){ if(left <= 0.005) break; const p = Math.min(left, c.b); c.b -= p; left -= p; row.pays[c.id] += p; }
+    }
+    for(const c of cs){ if(c.b <= 0.005){ c.b = 0; if(c.paidOff === null) c.paidOff = m; } row.bals[c.id] = c.b; }
+    row.bal = cs.reduce((s, c) => s + c.b, 0);
+    months.push(row);
+    if(m >= 2 && row.bal > 0 && row.bal >= months[m - 1].bal - 0.005) return { never:true, months, totalInt, cs };
+  }
+  return { never: cs.some(c => c.b > 0.005), months, totalInt, cs };
+}
+function priority(debts, strat){
+  return [...debts].sort((a, b) => strat === "avalancha" ? (b.rate - a.rate) || (a.bal - b.bal) : (a.bal - b.bal) || (b.rate - a.rate));
+}
+function duration(n){
+  const y = Math.floor(n / 12), m = n % 12;
+  return [y ? y + (y > 1 ? " años" : " año") : "", m ? m + (m > 1 ? " meses" : " mes") : ""].filter(Boolean).join(" y ") || "este mes";
+}
+function monthAt(offset){ const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + offset); return d; }
+const shortMonth = o => { const d = monthAt(o); return MESES[d.getMonth()] + " " + String(d.getFullYear()).slice(2); };
+const longMonth = o => { const d = monthAt(o); return MESES_L[d.getMonth()] + " " + d.getFullYear(); };
+function nextDue(day){
+  if(!day) return "";
+  const now = new Date(), t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const at = (y, mo) => new Date(y, mo, Math.min(day, new Date(y, mo + 1, 0).getDate()));
+  let d = at(now.getFullYear(), now.getMonth());
+  if(d < t0) d = at(now.getFullYear(), now.getMonth() + 1);
+  return "Antes del " + d.getDate() + " de " + MESES_L[d.getMonth()];
+}
+
+/* ---------- Estado ---------- */
+let state = { debts:[], budget:"", strat:"avalancha", iva:true };
+try { const s = JSON.parse(localStorage.getItem(PLAN_KEY) || "null"); if(s && Array.isArray(s.debts)) state = { ...state, ...s }; } catch(e){}
+state.debts = state.debts.filter(d => d && typeof d === "object").map((d, i) => ({ id: String(d.id || uid()), src: d.src ? String(d.src) : "", name: String(d.name || "").slice(0, 40), bal: d.bal ?? "", rate: d.rate ?? "", min: d.min ?? "", day: d.day ?? "", color: /^#[0-9a-f]{6}$/i.test(d.color || "") ? d.color : COLORS[i % COLORS.length] }));
+if(!state.debts.length) state.debts.push(newDebt());
+function newDebt(extra){ return { id: uid(), src:"", name:"", bal:"", rate:"", min:"", day:"", color: COLORS[(state.debts?.length || 0) % COLORS.length], ...extra }; }
+let saveT;
+function save(){ clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(PLAN_KEY, JSON.stringify(state)); } catch(e){} }, 250); }
+
+function savedCards(){
+  try { const a = JSON.parse(localStorage.getItem(CARDS_KEY) || "[]"); return Array.isArray(a) ? a.filter(c => c && typeof c.id === "string" && typeof c.nombre === "string") : []; } catch(e){ return []; }
+}
+
+/* ---------- Deudas ---------- */
+const $ = id => document.getElementById(id);
+function renderDebts(){
+  $("debts").innerHTML = state.debts.map((d, i) => {
+    const miss = k => (num(d.bal) > 0 && !num(d[k]) && k !== "day") ? " miss" : "";
+    return `<div class="debt" style="--c:${d.color}">
+      <div class="debt-head"><span class="dot" style="background:${d.color}"></span>
+        <input data-i="${i}" data-k="name" value="${esc(d.name)}" placeholder="Nombre (ej. BBVA Azul)" maxlength="40" aria-label="Nombre de la tarjeta">
+        <button class="x" type="button" data-del="${i}" aria-label="Quitar ${esc(d.name || "tarjeta")}">×</button></div>
+      <div class="fields">
+        <div class="field${miss("bal")}"><label>Saldo actual</label><input data-i="${i}" data-k="bal" type="number" inputmode="decimal" min="0" value="${esc(d.bal)}" placeholder="$0"></div>
+        <div class="field${miss("rate")}"><label>Tasa anual %</label><input data-i="${i}" data-k="rate" type="number" inputmode="decimal" min="0" max="300" value="${esc(d.rate)}" placeholder="ej. 55"></div>
+        <div class="field${miss("min")}"><label>Pago mínimo</label><input data-i="${i}" data-k="min" type="number" inputmode="decimal" min="0" value="${esc(d.min)}" placeholder="$0"></div>
+        <div class="field"><label>Día límite</label><input data-i="${i}" data-k="day" type="number" inputmode="numeric" min="1" max="31" value="${esc(d.day)}" placeholder="1–31"></div>
+      </div>
+      ${d.src ? `<div class="debt-foot">Traída de Mis tarjetas</div>` : ""}
+    </div>`;
+  }).join("");
+  renderImport();
+}
+$("debts").addEventListener("input", e => {
+  const t = e.target; if(!t.dataset.k) return;
+  const d = state.debts[+t.dataset.i]; d[t.dataset.k] = t.value;
+  const field = t.closest(".field");
+  if(field && t.dataset.k !== "day"){ field.classList.toggle("miss", num(d.bal) > 0 && !num(t.value)); }
+  if(t.dataset.k === "bal") t.closest(".debt").querySelectorAll(".field").forEach((f, j) => { const k = ["bal","rate","min"][j]; if(k) f.classList.toggle("miss", num(d.bal) > 0 && !num(d[k])); });
+  save(); calc();
+});
+$("debts").addEventListener("click", e => {
+  const b = e.target.closest("[data-del]"); if(!b) return;
+  state.debts.splice(+b.dataset.del, 1);
+  if(!state.debts.length) state.debts.push(newDebt());
+  save(); renderDebts(); calc();
+});
+$("addBtn").onclick = () => { state.debts.push(newDebt()); save(); renderDebts(); calc(); const ins = $("debts").querySelectorAll(".debt-head input"); ins[ins.length - 1]?.focus(); };
+function renderImport(){
+  const have = new Set(state.debts.map(d => d.src).filter(Boolean));
+  const pend = savedCards().filter(c => !have.has(c.id));
+  const b = $("importBtn"); b.hidden = !pend.length;
+  b.textContent = `Traer de Mis tarjetas (${pend.length})`;
+  $("addRow").style.gridTemplateColumns = pend.length ? "1fr 1fr" : "1fr";
+}
+$("importBtn").onclick = () => {
+  const have = new Set(state.debts.map(d => d.src).filter(Boolean));
+  state.debts = state.debts.filter(d => d.name || num(d.bal) || num(d.rate) || num(d.min));
+  for(const c of savedCards()){
+    if(have.has(c.id)) continue;
+    state.debts.push(newDebt({ src:c.id, name:(c.nombre + (c.banco ? " · " + c.banco : "")).slice(0, 40), bal: Number.isFinite(c.saldo) && c.saldo > 0 ? String(c.saldo) : "", day: c.modo === "dia" && c.limite ? String(c.limite) : "", color: /^#[0-9a-f]{6}$/i.test(c.color || "") ? c.color : COLORS[state.debts.length % COLORS.length] }));
+  }
+  if(!state.debts.length) state.debts.push(newDebt());
+  save(); renderDebts(); calc();
+};
+
+/* ---------- Presupuesto ---------- */
+$("budget").value = state.budget;
+$("budget").addEventListener("input", () => { state.budget = $("budget").value; $("range").value = num(state.budget); save(); calc(); });
+$("range").addEventListener("input", () => { state.budget = $("range").value; $("budget").value = state.budget; save(); calc(); });
+$("iva").checked = !!state.iva;
+$("iva").addEventListener("change", () => { state.iva = $("iva").checked; save(); calc(); });
+$("strat").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; state.strat = b.dataset.v; save(); calc(); });
+
+/* ---------- Render del plan ---------- */
+function chart(r, debts){
+  const W = 640, H = 260, L = 4, B = 36, n = r.months.length;
+  const totals = [debts.reduce((s, d) => s + d.bal, 0), ...r.months.map(m => m.bal)];
+  const max = Math.max(...totals, 1), bw = (W - L) / (n + 1);
+  let bars = "";
+  for(let i = 0; i <= n; i++){
+    let y = H - B;
+    for(const d of debts){
+      const v = i === 0 ? d.bal : (r.months[i - 1].bals[d.id] || 0);
+      if(v <= 0) continue;
+      const h = v / max * (H - B - 30);
+      y -= h;
+      bars += `<rect x="${(L + i * bw + bw * .14).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(bw * .72, 1).toFixed(1)}" height="${h.toFixed(1)}" fill="${d.color}"><title>${esc(d.name)}: ${money(v)}</title></rect>`;
+    }
+  }
+  const step = Math.max(1, Math.ceil((n + 1) / 5));
+  let labs = "";
+  for(let i = 0; i <= n; i += step) labs += `<text x="${(L + i * bw + bw / 2).toFixed(1)}" y="${H - 8}" font-size="19" text-anchor="middle" fill="var(--muted)">${i === 0 ? "hoy" : shortMonth(i - 1)}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Deuda restante por mes, de ${money(totals[0])} a cero en ${duration(n)}">
+    <text x="${L}" y="18" font-size="19" fill="var(--muted)">${money(max)}</text>
+    <line x1="${L}" x2="${W}" y1="${H - B}" y2="${H - B}" stroke="var(--line)"/>${bars}${labs}</svg>`;
+}
+
+function calc(){
+  document.querySelectorAll("#strat button").forEach(b => b.classList.toggle("on", b.dataset.v === state.strat));
+  const debts = state.debts.map((d, i) => ({ id:d.id, name:d.name || ("Tarjeta " + (i + 1)), color:d.color, bal:num(d.bal), rate:num(d.rate), min:num(d.min), day:Math.min(31, Math.round(num(d.day))) })).filter(d => d.bal > 0);
+  const budget = num(state.budget);
+  const sumMin = debts.reduce((s, d) => s + Math.min(d.min, d.bal), 0);
+  const total = debts.reduce((s, d) => s + d.bal, 0);
+  $("debtTotal").textContent = debts.length ? "Total: " + money(total) : "";
+  $("minHint").textContent = debts.length ? `Tus pagos mínimos suman ${money(sumMin)}. Todo lo que pongas arriba de eso acelera tu plan.` : "";
+
+  // Rango del deslizador
+  const showRange = debts.length && sumMin > 0;
+  $("range").hidden = $("rangeLbl").hidden = !showRange;
+  if(showRange){
+    const lo = Math.ceil(sumMin), hi = Math.max(Math.ceil(Math.min(total, sumMin * 5) / 100) * 100, lo + 500, Math.ceil(budget / 100) * 100);
+    $("range").min = lo; $("range").step = 50; $("range").max = hi; $("range").value = budget || lo;
+    $("rMin").textContent = "Mínimos: " + money(lo); $("rMax").textContent = money(hi);
+  }
+
+  const hero = $("hero"); const hide = v => ["paySec","chartSec","orderSec"].forEach(id => $(id).hidden = v);
+  $("stratCmp").textContent = "";
+  const empty = (title, text, cls) => { hero.className = "panel hero empty"; hero.innerHTML = `<div class="label">${title}</div><div style="font-size:17px;font-weight:600">${text}</div>`; hide(true); if(cls) hero.innerHTML += `<div class="alert ${cls[0]}">${cls[1]}</div>`; };
+
+  if(!debts.length) return empty("Empieza aquí", "Captura abajo el saldo de al menos una tarjeta.");
+  const incomplete = debts.filter(d => !d.rate || !d.min);
+  if(incomplete.length) return empty("Casi listo", `Falta la tasa anual o el pago mínimo de: ${incomplete.map(d => esc(d.name)).join(", ")}.`);
+  if(!budget) return empty("Último paso", "Escribe cuánto puedes pagar en total cada mes.");
+  if(budget < sumMin) return empty("Tu presupuesto no alcanza", `Con ${money(budget)} no cubres los mínimos.`, ["bad", `Te faltan <b>${money(sumMin - budget)}</b> al mes para pagar al menos el mínimo de todas. No cubrirlo genera recargos y reportes en Buró de Crédito.`]);
+
+  const r = simulate(debts, budget, state.strat, state.iva, false);
+  if(r.never) return empty("Así no se acaba", "Los intereses crecen igual o más rápido que tus pagos.", ["bad", "Sube tu presupuesto mensual para que la deuda empiece a bajar."]);
+  const alt = simulate(debts, budget, state.strat === "avalancha" ? "bola" : "avalancha", state.iva, false);
+  const mins = simulate(debts, sumMin, state.strat, state.iva, true);
+  const n = r.months.length, first = r.months[0];
+  const top = priority(debts, state.strat)[0];
+
+  // Héroe
+  let save$ = "";
+  if(mins.never) save$ = `<b>Nunca</b><span>terminarías pagando solo mínimos</span>`;
+  else save$ = `<b>${money(Math.max(0, mins.totalInt - r.totalInt))}</b><span>ahorras vs. solo mínimos</span>`;
+  hero.className = "panel hero";
+  hero.innerHTML = `<div><div class="label">Quedas libre de deudas en</div><div class="big">${longMonth(n - 1)}</div><div class="sub">En ${duration(n)}, pagando ${money(budget)} al mes</div></div>
+    <div class="hero-kpis"><div><b>${money(total)}</b><span>debes hoy</span></div><div><b>${money(r.totalInt)}</b><span>pagarás de intereses</span></div><div>${save$}</div></div>`;
+  hide(false);
+
+  // Pagos del mes
+  $("payMonth").textContent = longMonth(0);
+  const rows = [...debts].sort((a, b) => (a.day || 99) - (b.day || 99)).map(d => {
+    const p = first.pays[d.id] || 0, extra = p - d.min;
+    const tag = d.id === top.id && extra > 1 ? `<span class="chip">prioridad</span>` : (r.cs.find(c => c.id === d.id).paidOff === 0 ? `<span class="chip ok">la liquidas</span>` : "");
+    return `<div class="pay"><span class="dot" style="background:${d.color}"></span>
+      <div><div class="n">${esc(d.name)}${tag}</div><div class="d">${[nextDue(d.day), extra > 1 ? "mínimo " + money(d.min) + " + extra " + money(extra) : "solo el mínimo"].filter(Boolean).join(" · ")}</div></div>
+      <div class="a num">${money(p)}</div></div>`;
+  }).join("");
+  $("pays").innerHTML = rows + `<div class="pay-total"><span>Total del mes</span><span class="num">${money(Object.values(first.pays).reduce((s, v) => s + v, 0))}</span></div>`;
+
+  // Estrategia
+  const diff = alt.totalInt - r.totalInt, otherName = state.strat === "avalancha" ? "bola de nieve" : "avalancha";
+  if(Math.abs(diff) >= 1) $("stratCmp").textContent = `Con ${otherName} pagarías ${money(Math.abs(diff))} ${diff > 0 ? "más" : "menos"} de intereses${alt.months.length !== n ? " y terminarías en " + duration(alt.months.length) : ""}.`;
+  else $("stratCmp").textContent = "Con tus tarjetas, ambas estrategias cuestan lo mismo.";
+
+  // Gráfica
+  $("chart").innerHTML = chart(r, debts);
+  $("legend").innerHTML = debts.map(d => `<span><i style="background:${d.color}"></i>${esc(d.name)}</span>`).join("");
+
+  // Orden
+  const byId = Object.fromEntries(debts.map(d => [d.id, d]));
+  $("steps").innerHTML = [...r.cs].sort((a, b) => a.paidOff - b.paidOff).map((c, i) => `<li><span class="k" style="background:${byId[c.id].color}">${i + 1}</span><span>${esc(byId[c.id].name)}</span><span class="w">${shortMonth(c.paidOff)}<small>mes ${c.paidOff + 1}</small></span></li>`).join("");
+
+  // Tabla
+  $("table").innerHTML = `<table><thead><tr><th>Mes</th>${debts.map(d => `<th>${esc(d.name)}</th>`).join("")}<th>Resta</th></tr></thead><tbody>${r.months.map((m, i) => `<tr><td>${shortMonth(i)}</td>${debts.map(d => `<td>${m.pays[d.id] > 0.5 ? money(m.pays[d.id]) : "—"}</td>`).join("")}<td>${money(m.bal)}</td></tr>`).join("")}</tbody></table>`;
+}
+
+renderDebts(); calc();
+if("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
