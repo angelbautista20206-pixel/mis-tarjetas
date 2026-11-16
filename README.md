@@ -28,7 +28,7 @@ Se mantiene la clave `mis-tarjetas-v1` del almacenamiento. La primera lectura v�
 
 ## Plan de pagos
 
-`plan.html`, enlazada desde el inicio. Arriba muestra autorizado, deuda y disponible (suma de todas las deudas). Por cada deuda se captura límite, saldo, tasa anual y pago mínimo; con el pago mensual total calcula cuándo se termina de pagar, cuánto se paga de intereses y, por deuda, cuánto pagar este mes y cuándo queda liquidada.
+`plan/` (con su propio `plan/manifest.webmanifest`, para instalarse como app independiente), enlazada desde el inicio. `plan.html` solo redirige ahí. Arriba muestra autorizado, deuda y disponible (suma de todas las deudas). Por cada deuda se captura límite, saldo, tasa anual y pago mínimo; con el pago mensual total calcula cuándo se termina de pagar, cuánto se paga de intereses y, por deuda, cuánto pagar este mes y cuándo queda liquidada.
 
 - El excedente sobre los mínimos va primero a la tasa más alta (avalancha). Interés mensual = saldo × tasa anual ÷ 12 + IVA 16%. No considera compras nuevas ni comisiones.
 - “Traer mis tarjetas” copia nombre, línea y saldo de las tarjetas guardadas (`mis-tarjetas-v1`) sin modificarlas.

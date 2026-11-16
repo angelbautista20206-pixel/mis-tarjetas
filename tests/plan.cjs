@@ -1,6 +1,6 @@
-// Pruebas del cálculo del plan de pagos (plan.html). Sin dependencias: node tests/plan.cjs
+// Pruebas del cálculo del plan de pagos (plan/index.html). Sin dependencias: node tests/plan.cjs
 const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
-const html = fs.readFileSync(new URL('../plan.html', 'file://' + __filename), 'utf8');
+const html = fs.readFileSync(new URL('../plan/index.html', 'file://' + __filename), 'utf8');
 const src = html.match(/function simulate[\s\S]*?\n}\nfunction priority[\s\S]*?\n}\n/)[0];
 const ctx = vm.createContext({});
 vm.runInContext(src + ';this.simulate=simulate;this.priority=priority;', ctx);
