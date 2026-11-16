@@ -1,0 +1,17 @@
+{
+  "name": "Plan de pagos · Mis Tarjetas",
+  "short_name": "Plan de pagos",
+  "description": "Registra tus deudas y ve en cuánto tiempo terminas de pagarlas.",
+  "lang": "es-MX",
+  "id": "./plan.html",
+  "start_url": "./plan.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F8FC",
+  "theme_color": "#0B1F3A",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "assets/lba-logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
