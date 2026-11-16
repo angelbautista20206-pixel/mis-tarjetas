@@ -28,11 +28,10 @@ Se mantiene la clave `mis-tarjetas-v1` del almacenamiento. La primera lectura v�
 
 ## Plan de pagos
 
-`plan.html`, enlazada desde el inicio. Con el saldo, la tasa anual, el pago mínimo y el día límite de cada tarjeta, más un presupuesto mensual total, calcula cuánto pagar a cada tarjeta este mes, en qué mes se liquida todo y cuánto se paga de intereses.
+`plan.html`, enlazada desde el inicio. Arriba muestra autorizado, deuda y disponible (suma de todas las deudas). Por cada deuda se captura límite, saldo, tasa anual y pago mínimo; con el pago mensual total calcula cuándo se termina de pagar, cuánto se paga de intereses y, por deuda, cuánto pagar este mes y cuándo queda liquidada.
 
-- Estrategias: avalancha (el excedente va a la tasa más alta) y bola de nieve (al saldo menor). Muestra la diferencia de intereses entre ambas y contra pagar solo mínimos.
-- Interés mensual = saldo × tasa anual ÷ 12, con IVA del 16% opcional (activado por defecto). No considera compras nuevas, comisiones ni cambios de tasa.
-- “Traer de Mis tarjetas” copia nombre, saldo, color y día límite de las tarjetas guardadas (`mis-tarjetas-v1`); no las modifica. La tasa y el mínimo se capturan a mano.
+- El excedente sobre los mínimos va primero a la tasa más alta (avalancha). Interés mensual = saldo × tasa anual ÷ 12 + IVA 16%. No considera compras nuevas ni comisiones.
+- “Traer mis tarjetas” copia nombre, línea y saldo de las tarjetas guardadas (`mis-tarjetas-v1`) sin modificarlas.
 - Datos en su propia clave `mis-tarjetas-plan-v1`, solo en el navegador.
 
 ## Calendario
